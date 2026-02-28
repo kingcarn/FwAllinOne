@@ -102,7 +102,7 @@ WidgetMetadata = {
                         { title: "🎨 动画 (Animation)", value: "animation" },
                         { title: "🎥 纪录片 (Documentary)", value: "documentary" },
                         { title: "冒险 (Adventure)", value: "adventure" },
-                        { title: "历史 (History)", value: "history" },
+                        { title: "历史/真人秀 (History moive/Show TV)", value: "history" },
                         { title: "战争 (War)", value: "war" },
                         { title: "家庭 (Family)", value: "family" }
                     ]
