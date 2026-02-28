@@ -5,11 +5,11 @@
  */
 
 WidgetMetadata = {
-    id: "global_series_makka",
-    title: "全球影视专区",
+    id: "kingcarn's own gloabl seriers",
+    title: "KC's 全球影视专区",
     description: "自由切换全球十几个国家与地区，探索纯正的本土电影与剧集",
-    author: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
-    version: "2.1.1", // 🚀 修复：精准绑定 sort_by 触发右上角下拉菜单
+    author: "KingCarn",
+    version: "2.1.2", // 🚀 修复：精准绑定 sort_by 触发右上角下拉菜单
     requiredVersion: "0.0.1",
     modules: [
         // ================= 模块 1：全球探索发现 =================
@@ -141,7 +141,8 @@ WidgetMetadata = {
                     enumOptions: [
                         { title: "🔥 热门趋势", value: "popularity" },
                         { title: "⭐ 评分最高", value: "rating" },
-                        { title: "📅 最新上线", value: "time" }
+                        { title: "↑ 时间倒序", value: "time_desc" },
+						{ title: "↓ 时间正序", value: "time_asc" }
                     ]
                 },
                 { name: "page", title: "页码", type: "page", startPage: 1 }
@@ -341,8 +342,10 @@ async function loadGenreRank(params = {}) {
     let tmdbSortBy = "popularity.desc";
     if (sort_by === "rating") { // 👉 改为 sort_by
         tmdbSortBy = "vote_average.desc";
-    } else if (sort_by === "time") { // 👉 改为 sort_by
+    } else if (sort_by === "time_desc") { // 👉 改为 sort_by
         tmdbSortBy = mediaType === "movie" ? "primary_release_date.desc" : "first_air_date.desc";
+    } else if (sort_by === "time_asc") { // 👉 改为 sort_by
+        tmdbSortBy = mediaType === "movie" ? "primary_release_date.asc" : "first_air_date.asc";
     }
 
     const queryParams = {
@@ -362,7 +365,7 @@ async function loadGenreRank(params = {}) {
         queryParams["vote_count.gte"] = 10; 
     }
 
-    if (sort_by === "time") { // 👉 改为 sort_by
+    if (sort_by === "time_desc" || sort_by === "time_asc") { // 👉 改为 sort_by
         const today = new Date();
         today.setMonth(today.getMonth() + 1);
         const maxDate = today.toISOString().split('T')[0];
