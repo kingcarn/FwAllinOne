@@ -9,7 +9,7 @@ WidgetMetadata = {
     title: "KC's 全球影视专区",
     description: "自由切换全球十几个国家与地区，探索纯正的本土电影与剧集",
     author: "KingCarn",
-    version: "2.1.7", // 🚀 修复：精准绑定 sort_by 触发右上角下拉菜单
+    version: "2.1.8", // 🚀 修复：精准绑定 sort_by 触发右上角下拉菜单
     requiredVersion: "0.0.1",
     modules: [
         // ================= 模块 1：全球探索发现 =================
@@ -384,7 +384,7 @@ async function loadGenreRank(params = {}) {
                    let yearNorm = maxYear > minYear ? (year - minYear) / (maxYear - minYear) : 0;
 
                    // 贝叶斯加权综合分（调节权重）
-                   i._recent_hot_weight = 0.6 * popNorm + 0.25 * scoreNorm + 0.15 * yearNorm;
+                   i._recent_hot_weight = 0.3 * popNorm + 0.15 * scoreNorm + 0.55 * yearNorm;
                });
                
                // 在当前页内按综合分排序
