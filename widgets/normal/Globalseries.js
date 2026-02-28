@@ -9,7 +9,7 @@ WidgetMetadata = {
     title: "KC's 全球影视专区",
     description: "自由切换全球十几个国家与地区，探索纯正的本土电影与剧集",
     author: "KingCarn",
-    version: "2.1.5", // 🚀 修复：精准绑定 sort_by 触发右上角下拉菜单
+    version: "2.1.6", // 🚀 修复：精准绑定 sort_by 触发右上角下拉菜单
     requiredVersion: "0.0.1",
     modules: [
         // ================= 模块 1：全球探索发现 =================
@@ -129,7 +129,8 @@ WidgetMetadata = {
                         { title: "🔥 热门趋势", value: "popularity" },
                         { title: "⭐ 评分最高", value: "rating" },
                         { title: "↑ 时间倒序", value: "time_desc" },
-						{ title: "↓ 时间正序", value: "time_asc" }
+						{ title: "↓ 时间正序", value: "time_asc" },
+        				{ title: "🌟 近期热门", value: "recent_hot" } 
                     ]
                 },
                 { name: "page", title: "页码", type: "page", startPage: 1 }
@@ -302,25 +303,17 @@ const REGION_MAP = {
 
 async function loadGenreRank(params = {}) {
     const page = parseInt(params.page) || 1;
-    console.log(`[GenreHub] 正在请求高级类型榜单 第 ${page} 页...`);
-
-    // 👉 关键修复：改为 sort_by = "popularity"
     const { mediaType = "movie", genre = "scifi", region = "all", sort_by = "popularity" } = params;
 
     let genreId = "";
-    if (genre !== "all") {
-        genreId = ADVANCED_GENRE_MAP[genre] ? ADVANCED_GENRE_MAP[genre][mediaType] : "";
-    }
+    if (genre !== "all") genreId = ADVANCED_GENRE_MAP[genre] ? ADVANCED_GENRE_MAP[genre][mediaType] : "";
     const originCountry = REGION_MAP[region] || "";
 
     let tmdbSortBy = "popularity.desc";
-    if (sort_by === "rating") { // 👉 改为 sort_by
-        tmdbSortBy = "vote_average.desc";
-    } else if (sort_by === "time_desc") { // 👉 改为 sort_by
-        tmdbSortBy = mediaType === "movie" ? "primary_release_date.desc" : "first_air_date.desc";
-    } else if (sort_by === "time_asc") { // 👉 改为 sort_by
-        tmdbSortBy = mediaType === "movie" ? "primary_release_date.asc" : "first_air_date.asc";
-    }
+    if (sort_by === "rating") tmdbSortBy = "vote_average.desc";
+    else if (sort_by === "time_desc") tmdbSortBy = mediaType === "movie" ? "primary_release_date.desc" : "first_air_date.desc";
+    else if (sort_by === "time_asc") tmdbSortBy = mediaType === "movie" ? "primary_release_date.asc" : "first_air_date.asc";
+    // recent_hot 默认先用流行趋势倒序
 
     const queryParams = {
         language: "zh-CN",
@@ -332,28 +325,67 @@ async function loadGenreRank(params = {}) {
 
     if (genreId) queryParams.with_genres = genreId;
     if (originCountry) queryParams.with_origin_country = originCountry;
+    // 主流宽松
+    queryParams["vote_count.gte"] = sort_by === "rating" ? 10 : 3;
 
-    if (sort_by === "rating") { // 👉 改为 sort_by
-        queryParams["vote_count.gte"] = 10; 
-    } else {
-        queryParams["vote_count.gte"] = 3; 
-    }
+    // 时间筛选逻辑 for recent_hot
+    let minYear = (new Date()).getFullYear() - 2; // 取近2年
+    let dateFloor = `${minYear}-01-01`;
 
-    if (sort_by === "time_desc" || sort_by === "time_asc") { // 👉 改为 sort_by
+    if (sort_by === "time_desc" || sort_by === "time_asc" || sort_by === "recent_hot") {
         const today = new Date();
         today.setMonth(today.getMonth() + 1);
         const maxDate = today.toISOString().split('T')[0];
-        
         if (mediaType === "movie") {
             queryParams["primary_release_date.lte"] = maxDate;
+            if (sort_by === "recent_hot") queryParams["primary_release_date.gte"] = dateFloor;
         } else {
             queryParams["first_air_date.lte"] = maxDate;
+            if (sort_by === "recent_hot") queryParams["first_air_date.gte"] = dateFloor;
         }
     }
 
     try {
+        // 拉取100条数据再后端排序
+        if (sort_by === "recent_hot") queryParams.page = 1; // 仅前100/50条再本地算
         const res = await Widget.tmdb.get(`/discover/${mediaType}`, { params: queryParams });
-        const items = res.results || [];
+        let items = res.results || [];
+
+        // --- recent_hot贝叶斯排序 ---
+        if (sort_by === "recent_hot") {
+            // 规范化数据，去除无popularity作品
+            items = items.filter(i => (i.popularity >= 0) && (i.vote_average !== undefined));
+
+            // 求出热门/评分最大/年份最大、最小做归一化
+            let maxPop = Math.max(...items.map(i => i.popularity || 0));
+            let minPop = Math.min(...items.map(i => i.popularity || 0));
+            let maxScore = Math.max(...items.map(i => i.vote_average || 0));
+            let minScore = Math.min(...items.map(i => i.vote_average || 0));
+            let maxYear = Math.max(...items.map(i => {
+                let date = i.release_date || i.first_air_date || "";
+                return date ? Number(date.slice(0, 4)) : minYear;
+            }));
+
+            // 计算综合分并排序
+            items.forEach(i => {
+                // 1. 热门分归一化(0~1)
+                let popNorm = maxPop > minPop ? (i.popularity - minPop) / (maxPop - minPop) : 0;
+                // 2. 评分分归一化(0~1)
+                let scoreNorm = maxScore > minScore ? (i.vote_average - minScore) / (maxScore - minScore) : 0;
+                // 3. 年份分归一化(新更高)
+                let year = 0;
+                let date = i.release_date || i.first_air_date || "";
+                if (date) year = Number(date.slice(0, 4));
+                let yearNorm = maxYear > minYear ? (year - minYear) / (maxYear - minYear) : 0;
+
+                // 贝叶斯加权综合分（调节权重）
+                i._recent_hot_weight = 0.6 * popNorm + 0.25 * scoreNorm + 0.15 * yearNorm;
+            });
+            // 排序
+            items.sort((a, b) => b._recent_hot_weight - a._recent_hot_weight);
+            // 截取20条，下拉页可再扩大
+            items = items.slice(0, 20);
+        }
 
         if (items.length === 0) {
             return page === 1 ? [{ id: "empty", type: "text", title: "未找到符合条件的影视", description: "请尝试更换国家或类型" }] : [];
@@ -363,7 +395,6 @@ async function loadGenreRank(params = {}) {
             const date = item.release_date || item.first_air_date || "";
             const year = date ? date.substring(0, 4) : "未知";
             const score = item.vote_average ? item.vote_average.toFixed(1) : "暂无评分";
-            
             return {
                 id: String(item.id),
                 tmdbId: parseInt(item.id),
