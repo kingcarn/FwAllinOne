@@ -9,7 +9,7 @@ WidgetMetadata = {
     title: "KC's 全球影视专区",
     description: "自由切换全球十几个国家与地区，探索纯正的本土电影与剧集",
     author: "KingCarn",
-    version: "2.1.6", // 🚀 修复：精准绑定 sort_by 触发右上角下拉菜单
+    version: "2.1.7", // 🚀 修复：精准绑定 sort_by 触发右上角下拉菜单
     requiredVersion: "0.0.1",
     modules: [
         // ================= 模块 1：全球探索发现 =================
@@ -346,45 +346,50 @@ async function loadGenreRank(params = {}) {
     }
 
     try {
-        // 拉取100条数据再后端排序
-        if (sort_by === "recent_hot") queryParams.page = 1; // 仅前100/50条再本地算
-        const res = await Widget.tmdb.get(`/discover/${mediaType}`, { params: queryParams });
-        let items = res.results || [];
+       // 对于recent_hot，我们需要获取更多数据来进行本地排序
+       // 但为了支持分页，我们可以每页获取后单独排序，或者调整策略
+       // 这里采用每页获取40条（TMDB最大每页20条，所以需要获取2页？但API不支持）
+       // 更好的方案：仍然使用标准分页，但在每页内进行本地重排序
+       const res = await Widget.tmdb.get(`/discover/${mediaType}`, { params: queryParams });
+       let items = res.results || [];
 
-        // --- recent_hot贝叶斯排序 ---
-        if (sort_by === "recent_hot") {
-            // 规范化数据，去除无popularity作品
-            items = items.filter(i => (i.popularity >= 0) && (i.vote_average !== undefined));
+       // --- recent_hot贝叶斯排序 ---
+       if (sort_by === "recent_hot") {
+           // 对于recent_hot，我们需要保持分页能力
+           // 但为了排序的准确性，可以获取更多数据（但会牺牲性能）
+           // 这里我们保持原有逻辑，但移除强制page=1的限制
+           
 
-            // 求出热门/评分最大/年份最大、最小做归一化
-            let maxPop = Math.max(...items.map(i => i.popularity || 0));
-            let minPop = Math.min(...items.map(i => i.popularity || 0));
-            let maxScore = Math.max(...items.map(i => i.vote_average || 0));
-            let minScore = Math.min(...items.map(i => i.vote_average || 0));
-            let maxYear = Math.max(...items.map(i => {
-                let date = i.release_date || i.first_air_date || "";
-                return date ? Number(date.slice(0, 4)) : minYear;
-            }));
+           if (items.length > 0) {
+               // 求出热门/评分最大/年份最大、最小做归一化
+               let maxPop = Math.max(...items.map(i => i.popularity || 0));
+               let minPop = Math.min(...items.map(i => i.popularity || 0));
+               let maxScore = Math.max(...items.map(i => i.vote_average || 0));
+               let minScore = Math.min(...items.map(i => i.vote_average || 0));
+               let maxYear = Math.max(...items.map(i => {
+                   let date = i.release_date || i.first_air_date || "";
+                   return date ? Number(date.slice(0, 4)) : minYear;
+               }));
 
-            // 计算综合分并排序
-            items.forEach(i => {
-                // 1. 热门分归一化(0~1)
-                let popNorm = maxPop > minPop ? (i.popularity - minPop) / (maxPop - minPop) : 0;
-                // 2. 评分分归一化(0~1)
-                let scoreNorm = maxScore > minScore ? (i.vote_average - minScore) / (maxScore - minScore) : 0;
-                // 3. 年份分归一化(新更高)
-                let year = 0;
-                let date = i.release_date || i.first_air_date || "";
-                if (date) year = Number(date.slice(0, 4));
-                let yearNorm = maxYear > minYear ? (year - minYear) / (maxYear - minYear) : 0;
+               // 计算综合分并排序
+               items.forEach(i => {
+                   // 1. 热门分归一化(0~1)
+                   let popNorm = maxPop > minPop ? (i.popularity - minPop) / (maxPop - minPop) : 0;
+                   // 2. 评分分归一化(0~1)
+                   let scoreNorm = maxScore > minScore ? (i.vote_average - minScore) / (maxScore - minScore) : 0;
+                   // 3. 年份分归一化(新更高)
+                   let year = 0;
+                   let date = i.release_date || i.first_air_date || "";
+                   if (date) year = Number(date.slice(0, 4));
+                   let yearNorm = maxYear > minYear ? (year - minYear) / (maxYear - minYear) : 0;
 
-                // 贝叶斯加权综合分（调节权重）
-                i._recent_hot_weight = 0.6 * popNorm + 0.25 * scoreNorm + 0.15 * yearNorm;
-            });
-            // 排序
-            items.sort((a, b) => b._recent_hot_weight - a._recent_hot_weight);
-            // 截取20条，下拉页可再扩大
-            items = items.slice(0, 20);
+                   // 贝叶斯加权综合分（调节权重）
+                   i._recent_hot_weight = 0.6 * popNorm + 0.25 * scoreNorm + 0.15 * yearNorm;
+               });
+               
+               // 在当前页内按综合分排序
+               items.sort((a, b) => b._recent_hot_weight - a._recent_hot_weight);
+           }
         }
 
         if (items.length === 0) {
