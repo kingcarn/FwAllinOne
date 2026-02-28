@@ -89,6 +89,7 @@ WidgetMetadata = {
                     type: "enumeration",
                     value: "scifi",
                     enumOptions: [
+                        { title: "🌈 全部 (All)", value: "all" },
                         { title: "🛸 科幻 (Sci-Fi)", value: "scifi" },
                         { title: "🔍 悬疑 (Mystery)", value: "mystery" },
                         { title: "👻 恐怖 (Horror)", value: "horror" },
@@ -331,7 +332,10 @@ async function loadGenreRank(params = {}) {
     // 👉 关键修复：改为 sort_by = "popularity"
     const { mediaType = "movie", genre = "scifi", region = "all", sort_by = "popularity" } = params;
 
-    const genreId = ADVANCED_GENRE_MAP[genre] ? ADVANCED_GENRE_MAP[genre][mediaType] : "";
+    let genreId = "";
+    if (genre !== "all") {
+        genreId = ADVANCED_GENRE_MAP[genre] ? ADVANCED_GENRE_MAP[genre][mediaType] : "";
+    }
     const originCountry = REGION_MAP[region] || "";
 
     let tmdbSortBy = "popularity.desc";
