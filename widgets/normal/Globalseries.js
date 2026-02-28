@@ -9,7 +9,7 @@ WidgetMetadata = {
     title: "KC's 全球影视专区",
     description: "自由切换全球十几个国家与地区，探索纯正的本土电影与剧集",
     author: "KingCarn",
-    version: "2.1.4", // 🚀 修复：精准绑定 sort_by 触发右上角下拉菜单
+    version: "2.1.5", // 🚀 修复：精准绑定 sort_by 触发右上角下拉菜单
     requiredVersion: "0.0.1",
     modules: [
         // ================= 模块 1：全球探索发现 =================
@@ -103,35 +103,22 @@ WidgetMetadata = {
                         { title: "🎥 纪录片 (Documentary)", value: "documentary" }
                     ]
                 },
-                {
-                    name: "region",
-                    title: "国家/地区",
-                    type: "enumeration",
-                    value: "all",
-                    enumOptions: [
-                        { title: "🌍 全球 (所有国家)", value: "all" },
-                        { title: "🇨🇳 中国大陆", value: "cn" },
-                        { title: "🇭🇰 中国香港", value: "hk" },
-                        { title: "🇹🇼 中国台湾", value: "tw" },
-                        { title: "🏮 港台 (香港+台湾)", value: "hktw" },
-                        { title: "🇯🇵 日本", value: "jp" },
-                        { title: "🇰🇷 韩国", value: "kr" },
-                        { title: "🌸 日韩合集", value: "jpkr" },
-                        { title: "🇹🇭 泰国", value: "th" },
-                        { title: "🇸🇬 新加坡", value: "sg" },
-                        { title: "🇲🇾 马来西亚", value: "my" },
-                        { title: "🇮🇳 印度", value: "in" },
-                        { title: "🌏 亚太大区", value: "apac" },
-                        { title: "🇺🇸 美国", value: "us" },
-                        { title: "🇬🇧 英国", value: "gb" },
-                        { title: "🇩🇪 德国", value: "de" },
-                        { title: "🇸🇪 瑞典", value: "se" },
-                        { title: "🇪🇺 欧洲全境", value: "europe" },
-                        { title: "🇪🇸 西班牙", value: "es" },
-                        { title: "🇲🇽 墨西哥", value: "mx" },
-                        { title: "💃 西语/拉丁美洲", value: "latin" }
-                    ]
-                },
+		        {
+		            name: "region",
+		            title: "国家/地区",
+		            type: "enumeration",
+		            value: "all",
+		            enumOptions: [
+		                { title: "🌍 全部地区", value: "all" },
+		                { title: "🇨🇳 中国大陆", value: "cn" },
+		                { title: "🏮 港台地区", value: "hktw" },
+		                { title: "🇯🇵 日本", value: "jp" },
+		                { title: "🇰🇷 韩国", value: "kr" },
+		                { title: "🇮🇳 印度", value: "in" },
+		                { title: "🌏 其他亚太地区", value: "apac2" },
+		                { title: "🌎 欧美", value: "usgb" }
+		            ]
+		        },
                 {
                     // 👉 关键修复：改为 sort_by
                     name: "sort_by",
@@ -305,25 +292,12 @@ const ADVANCED_GENRE_MAP = {
 const REGION_MAP = {
     "all": "",
     "cn": "CN",
-    "hk": "HK",
-    "tw": "TW",
     "hktw": "HK|TW",
     "jp": "JP",
     "kr": "KR",
-    "jpkr": "JP|KR",
-    "th": "TH",
-    "sg": "SG",
-    "my": "MY",
     "in": "IN",
-    "apac": "CN|HK|TW|JP|KR|TH|SG|MY|IN",
-    "us": "US",
-    "gb": "GB",
-    "de": "DE",
-    "se": "SE",
-    "europe": "GB|DE|FR|IT|ES|SE|NO|DK|FI|NL|BE|CH|AT|IE",
-    "es": "ES",
-    "mx": "MX",
-    "latin": "ES|MX|AR|CO|CL|PE|VE"
+    "apac2": "SG|MY|TH|PH|VN|ID",
+    "usgb": "US|GB|FR|DE|IT|ES|SE|NO|FI|NL|BE|CH|AT|IE"
 };
 
 async function loadGenreRank(params = {}) {
