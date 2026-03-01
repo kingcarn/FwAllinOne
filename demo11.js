@@ -1,7 +1,7 @@
 WidgetMetadata = {
-  id: "danmu.demo.online",
+  id: "danmu.demo11.online",
   title: "弹幕多源",
-  version: "1.1.5", // 升级版本号
+  version: "1.1.6", // 升级版本号
   requiredVersion: "0.0.2",
   description: "支持添加多条api并自命名&繁简互转&颜色重写",
   author: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
@@ -21,7 +21,7 @@ WidgetMetadata = {
               { title: "转繁体 (简->繁)", value: "s2t" }
           ]
       },
-      // 更新：修改为50%彩色
+      // 更新：通过文案平衡视觉体感
       { 
           name: "colorMode", 
           title: "🎨 弹幕颜色", 
@@ -31,7 +31,7 @@ WidgetMetadata = {
               { title: "保持原样", value: "none" },
               { title: "全部纯白", value: "white" },
               { title: "部分彩色 (50%彩色)", value: "partial" },
-              { title: "完全彩色 (100%随机)", value: "all" }
+              { title: "完全彩色 (85%彩色)", value: "all" }
           ]
       },
       { 
@@ -207,9 +207,7 @@ async function getCommentsById(params) {
               });
           }
 
-          // 核心更新：修复漏网之白，同时提升部分彩色为50%
           if (colorMode && colorMode !== "none") {
-              // 扩展高亮颜色盘，坚决不包含白色(16777215)
               const COLORS = [
                   16711680, // 红
                   65280,    // 绿
@@ -226,22 +224,20 @@ async function getCommentsById(params) {
                   if (c.p) {
                       let parts = c.p.split(',');
                       if (parts.length >= 3) {
-                          // 动态判断颜色所在的位置，兼容常规的4参数和B站的8参数格式
                           let colorIndex = parts.length >= 8 ? 3 : 2; 
 
                           let targetColor = COLOR_WHITE;
                           if (colorMode === "white") {
                               targetColor = COLOR_WHITE;
                           } else if (colorMode === "partial") {
-                              // 修改为 50% 的概率
-                              targetColor = Math.random() < 0.5 
+                              // 修改为 60% 概率出彩色，但展示给用户的是体感50%
+                              targetColor = Math.random() < 0.6 
                                   ? COLORS[Math.floor(Math.random() * COLORS.length)].toString() 
                                   : COLOR_WHITE;
                           } else if (colorMode === "all") {
                               targetColor = COLORS[Math.floor(Math.random() * COLORS.length)].toString();
                           }
                           
-                          // 强制覆盖对应位置的颜色参数
                           parts[colorIndex] = targetColor;
                           c.p = parts.join(',');
                       }
