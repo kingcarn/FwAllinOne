@@ -1,15 +1,29 @@
 WidgetMetadata = {
   id: "danmu.pro.online",
   title: "弹幕多源",
-  version: "1.1.4", // 升级版本号，去除默认api
+  version: "1.1.5", // 回退花哨功能，彻底重构多源并发合并机制，解决短路截胡问题
   requiredVersion: "0.0.2",
-  description: "支持添加多条api&繁简互转&颜色重写",
+  description: "支持多api&繁简互转&关键词屏蔽&颜色重写",
   author: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
   
   globalParams: [
       { name: "server", title: "源1 (必填)", type: "input", value: "请填入你的弹幕api" },
       { name: "server2", title: "源2", type: "input" },
       { name: "server3", title: "源3", type: "input" },
+      { 
+          name: "maxCount", 
+          title: "📊 弹幕数量上限", 
+          type: "input", 
+          value: "3000",
+          description: "填0或留空不限制。超出则按时间全段等比例随机剔除" 
+      },
+      { 
+          name: "searchBlockKeywords", 
+          title: "👁️ 搜索结果屏蔽词 (逗号分隔)", 
+          type: "input", 
+          value: "",
+          description: "屏蔽不想看到的搜索结果，如: 动态漫,电视剧,漫画" 
+      },
       { 
           name: "convertMode", 
           title: "🔠 弹幕转换", 
@@ -35,7 +49,7 @@ WidgetMetadata = {
       },
       { 
           name: "blockKeywords", 
-          title: "🚫 屏蔽词 (逗号分隔)", 
+          title: "🚫 弹幕内容屏蔽词 (逗号分隔)", 
           type: "input", 
           value: "" 
       }
@@ -63,7 +77,6 @@ async function initDict(mode) {
 
   if (!local) {
       try {
-          console.log(`Downloading ${mode} dict...`);
           const res = await Widget.http.get(mode === "s2t" ? DICT_URL_S2T : DICT_URL_T2S);
           let text = res.data || res;
           if (typeof text === 'string' && text.length > 100) {
@@ -95,24 +108,18 @@ function convertText(text) {
 // ==========================================
 const SOURCE_KEY = "dm_source_map";
 
-async function saveSource(id, url) {
-  let map = await Widget.storage.get(SOURCE_KEY);
-  map = map ? JSON.parse(map) : {};
-  map[id] = url;
-  await Widget.storage.set(SOURCE_KEY, JSON.stringify(map));
-}
-
 async function getSource(id) {
   let map = await Widget.storage.get(SOURCE_KEY);
   return map ? JSON.parse(map)[id] : null;
 }
 
 async function searchDanmu(params) {
-  const { title, season } = params;
+  const { title, season, searchBlockKeywords } = params;
   const servers = [params.server, params.server2, params.server3].filter(s => s && s.startsWith("http")).map(s => s.replace(/\/$/, ""));
   
   if (!servers.length) return { animes: [] };
 
+  // 并发请求所有源，不发生短路截胡
   const tasks = servers.map(async (server) => {
       try {
           const res = await Widget.http.get(`${server}/api/v2/search/anime?keyword=${encodeURIComponent(title)}`, {
@@ -126,14 +133,38 @@ async function searchDanmu(params) {
 
   const results = await Promise.all(tasks);
   let finalAnimes = [];
+  let mapEntries = {};
 
+  // 汇集所有源的结果
   for (const res of results) {
       if (res) {
-          for (const a of res.animes) await saveSource(a.animeId, res.server);
+          for (const a of res.animes) {
+              mapEntries[a.animeId] = res.server;
+          }
           finalAnimes = finalAnimes.concat(res.animes);
       }
   }
 
+  // 一次性批量保存所有来源映射，告别循环保存引发的卡死丢失
+  let mapStr = await Widget.storage.get(SOURCE_KEY);
+  let map = mapStr ? JSON.parse(mapStr) : {};
+  Object.assign(map, mapEntries);
+  await Widget.storage.set(SOURCE_KEY, JSON.stringify(map));
+
+  // 搜索结果屏蔽词过滤
+  if (finalAnimes.length > 0 && searchBlockKeywords) {
+      const blockedList = searchBlockKeywords.split(/[,，]/).map(k => k.trim()).filter(k => k.length > 0);
+      if (blockedList.length > 0) {
+          finalAnimes = finalAnimes.filter(a => {
+              for (const keyword of blockedList) {
+                  if (a.animeTitle.includes(keyword)) return false; 
+              }
+              return true;
+          });
+      }
+  }
+
+  // 季数精确过滤
   if (finalAnimes.length > 0 && season) {
       const matched = finalAnimes.filter(a => {
           if (!a.animeTitle.includes(title)) return false;
@@ -161,7 +192,12 @@ async function getDetailById(params) {
       });
       const data = typeof res.data === "string" ? JSON.parse(res.data) : res.data;
       if (data?.bangumi?.episodes) {
-          for (const ep of data.bangumi.episodes) await saveSource(ep.episodeId, server);
+          let mapStr = await Widget.storage.get(SOURCE_KEY);
+          let map = mapStr ? JSON.parse(mapStr) : {};
+          for (const ep of data.bangumi.episodes) {
+              map[ep.episodeId] = server;
+          }
+          await Widget.storage.set(SOURCE_KEY, JSON.stringify(map));
           return data.bangumi.episodes;
       }
   } catch (e) {}
@@ -169,7 +205,7 @@ async function getDetailById(params) {
 }
 
 async function getCommentsById(params) {
-  const { commentId, convertMode, blockKeywords, colorMode } = params;
+  const { commentId, convertMode, blockKeywords, colorMode, maxCount } = params;
   if (!commentId) return null;
 
   await initDict(convertMode);
@@ -206,15 +242,23 @@ async function getCommentsById(params) {
               });
           }
 
+          let limit = parseInt(maxCount);
+          if (!isNaN(limit) && limit > 0 && list.length > limit) {
+              for (let i = list.length - 1; i > 0; i--) {
+                  const j = Math.floor(Math.random() * (i + 1));
+                  [list[i], list[j]] = [list[j], list[i]];
+              }
+              list = list.slice(0, limit);
+              list.sort((a, b) => {
+                  let timeA = a.p ? parseFloat(a.p.split(',')[0]) || 0 : 0;
+                  let timeB = b.p ? parseFloat(b.p.split(',')[0]) || 0 : 0;
+                  return timeA - timeB;
+              });
+          }
+
           if (colorMode && colorMode !== "none") {
               const COLORS = [
-                  16711680, // 红 (FF0000)
-                  16776960, // 黄 (FFFF00)
-                  16752384, // 橘黄 (FF9900)
-                  16738740, // 粉红 (FF69B4)
-                  13445375, // 紫色 (CC33FF)
-                  11730943, // 亮青色 (#B2FFFF) 
-                  11730790  // 荧光绿 (#B2FF66) 
+                  16711680, 16776960, 16752384, 16738740, 13445375, 11730943, 11730790
               ];
               const COLOR_WHITE = "16777215";
 
