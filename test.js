@@ -1,15 +1,22 @@
 WidgetMetadata = {
-  id: "danmu.test.online",
-  title: "test弹幕",
-  version: "1.1.4", // 升级版本号
+  id: "danmu.lit.online",
+  title: "弹幕多源",
+  version: "1.2.0", // 升级版本号，新增弹幕数量上限与等比例抽样
   requiredVersion: "0.0.2",
   description: "支持添加多条api并自命名&繁简互转&颜色重写",
   author: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
   
   globalParams: [
-      { name: "server", title: "源1 (必填)", type: "input", value: "https://api.dandanplay.net" },
+      { name: "server", title: "源1 (必填)", type: "input", value: "请填入你的弹幕api" },
       { name: "server2", title: "源2", type: "input" },
       { name: "server3", title: "源3", type: "input" },
+      { 
+          name: "maxCount", 
+          title: "📊 弹幕数量上限", 
+          type: "input", 
+          value: "3000",
+          description: "填0或留空不限制。超出则按时间全段等比例随机剔除" 
+      },
       { 
           name: "convertMode", 
           title: "🔠 弹幕转换", 
@@ -21,7 +28,6 @@ WidgetMetadata = {
               { title: "转繁体 (简->繁)", value: "s2t" }
           ]
       },
-      // 新增：颜色转换参数
       { 
           name: "colorMode", 
           title: "🎨 弹幕颜色", 
@@ -30,11 +36,10 @@ WidgetMetadata = {
           enumOptions: [
               { title: "保持原样", value: "none" },
               { title: "全部纯白", value: "white" },
-              { title: "部分彩色 (40%彩色)", value: "partial" },
-              { title: "完全彩色 (100%随机)", value: "all" }
+              { title: "部分彩色 (50%彩色)", value: "partial" },
+              { title: "完全彩色 (100%彩色)", value: "all" }
           ]
       },
-      // 新增：屏蔽词参数
       { 
           name: "blockKeywords", 
           title: "🚫 屏蔽词 (逗号分隔)", 
@@ -54,11 +59,11 @@ WidgetMetadata = {
 // ==========================================
 const DICT_URL_S2T = "https://cdn.jsdelivr.net/npm/opencc-data@1.0.3/data/STCharacters.txt";
 const DICT_URL_T2S = "https://cdn.jsdelivr.net/npm/opencc-data@1.0.3/data/TSCharacters.txt";
-let MEM_DICT = null; // 内存缓存
+let MEM_DICT = null;
 
 async function initDict(mode) {
   if (!mode || mode === "none") return;
-  if (MEM_DICT) return; // 内存已有
+  if (MEM_DICT) return; 
 
   const key = `dict_${mode}`;
   let local = await Widget.storage.get(key);
@@ -136,7 +141,6 @@ async function searchDanmu(params) {
       }
   }
 
-  // 官方过滤
   if (finalAnimes.length > 0 && season) {
       const matched = finalAnimes.filter(a => {
           if (!a.animeTitle.includes(title)) return false;
@@ -172,18 +176,14 @@ async function getDetailById(params) {
 }
 
 async function getCommentsById(params) {
-  // 1. 获取参数：ID, 转换模式, 屏蔽词, 颜色模式
-  const { commentId, convertMode, blockKeywords, colorMode } = params;
+  const { commentId, convertMode, blockKeywords, colorMode, maxCount } = params;
   if (!commentId) return null;
 
-  // 准备字典
   await initDict(convertMode);
 
-  // 获取源
   let server = (await getSource(commentId)) || params.server;
 
   try {
-      // chConvert=0 (关掉服务端的转换，用我们自己的)
       const res = await Widget.http.get(`${server}/api/v2/comment/${commentId}?withRelated=true&chConvert=0`, {
           headers: { "Content-Type": "application/json" }
       });
@@ -191,14 +191,12 @@ async function getCommentsById(params) {
       
       let list = data.comments || [];
 
-      // 2. 解析屏蔽词列表 (支持中文逗号和英文逗号，去空格)
       const blockedList = blockKeywords 
           ? blockKeywords.split(/[,，]/).map(k => k.trim()).filter(k => k.length > 0) 
           : [];
 
-      // 3. 执行：转换 + 过滤 + 颜色修改
       if (list.length > 0) {
-          // 如果需要繁简转换，先转换
+          // 1. 繁简转换 (需在屏蔽词前，避免屏蔽词未匹配到)
           if (convertMode !== "none" && MEM_DICT) {
               list.forEach(c => {
                   if (c.m) c.m = convertText(c.m);
@@ -206,11 +204,10 @@ async function getCommentsById(params) {
               });
           }
 
-          // 如果有屏蔽词，执行过滤
+          // 2. 屏蔽词过滤
           if (blockedList.length > 0) {
               list = list.filter(c => {
                   const msg = c.m || c.message || "";
-                  // 只要包含任意一个屏蔽词，就丢弃
                   for (const keyword of blockedList) {
                       if (msg.includes(keyword)) return false; 
                   }
@@ -218,37 +215,62 @@ async function getCommentsById(params) {
               });
           }
 
-          // 如果需要修改颜色，重写 p 属性中的颜色值
+          // 3. 弹幕数量上限等比例抽样 (核心算法)
+          let limit = parseInt(maxCount);
+          if (!isNaN(limit) && limit > 0 && list.length > limit) {
+              // 洗牌算法：彻底随机打乱所有弹幕
+              for (let i = list.length - 1; i > 0; i--) {
+                  const j = Math.floor(Math.random() * (i + 1));
+                  [list[i], list[j]] = [list[j], list[i]];
+              }
+              // 截断保留所需数量
+              list = list.slice(0, limit);
+              
+              // 重新按时间轴从小到大排序，恢复播放顺序
+              list.sort((a, b) => {
+                  let timeA = a.p ? parseFloat(a.p.split(',')[0]) || 0 : 0;
+                  let timeB = b.p ? parseFloat(b.p.split(',')[0]) || 0 : 0;
+                  return timeA - timeB;
+              });
+          }
+
+          // 4. 颜色重写 (放在数量抽样之后，大幅度提高处理速度)
           if (colorMode && colorMode !== "none") {
-              // 精选明亮弹幕颜色集（十进制）：红、绿、黄、橙、紫、青、粉
-              const COLORS = [16711680, 65280, 16776960, 16737792, 16711935, 65535, 16738740];
+              const COLORS = [
+                  16711680, // 红 (FF0000)
+                  16776960, // 黄 (FFFF00)
+                  16752384, // 橘黄 (FF9900)
+                  16738740, // 粉红 (FF69B4)
+                  13445375, // 紫色 (CC33FF)
+                  11730943, // 亮青色 (#B2FFFF)
+                  11730790  // 荧光绿 (#B2FF66)
+              ];
               const COLOR_WHITE = "16777215";
 
               list.forEach(c => {
                   if (c.p) {
                       let parts = c.p.split(',');
-                      // 弹幕标准格式 p="时间,模式,颜色,用户ID"
                       if (parts.length >= 3) {
+                          let colorIndex = parts.length >= 8 ? 3 : 2; 
+
+                          let targetColor = COLOR_WHITE;
                           if (colorMode === "white") {
-                              parts[2] = COLOR_WHITE;
+                              targetColor = COLOR_WHITE;
                           } else if (colorMode === "partial") {
-                              // 40% 随机彩色，60% 纯白
-                              if (Math.random() < 0.4) {
-                                  parts[2] = COLORS[Math.floor(Math.random() * COLORS.length)].toString();
-                              } else {
-                                  parts[2] = COLOR_WHITE;
-                              }
+                              targetColor = Math.random() < 0.5 
+                                  ? COLORS[Math.floor(Math.random() * COLORS.length)].toString() 
+                                  : COLOR_WHITE;
                           } else if (colorMode === "all") {
-                              // 100% 随机彩色
-                              parts[2] = COLORS[Math.floor(Math.random() * COLORS.length)].toString();
+                              targetColor = COLORS[Math.floor(Math.random() * COLORS.length)].toString();
                           }
+                          
+                          parts[colorIndex] = targetColor;
                           c.p = parts.join(',');
                       }
                   }
               });
           }
           
-          // 将处理后的列表赋回给原数据结构
           data.comments = list;
       }
       
