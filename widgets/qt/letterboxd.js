@@ -335,10 +335,10 @@ WidgetMetadata = {
             ],
         },
     ],
-    version: "1.0.5",
+    version: "1.1.0",
     requiredVersion: "0.0.1",
-    description: "解析Letterboxd片单内的影片【已清理失效榜单并修复404】",
-    author: "huangxd",
+    description: "解析Letterboxd片单内的影片【修复404】",
+    author: "huangxd|𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
     site: "https://github.com/huangxd-/ForwardWidgets"
 };
 
