@@ -3,7 +3,7 @@ WidgetMetadata = {
   title: "弹幕多源",
   version: "1.1.4", // 升级版本号，去除默认api
   requiredVersion: "0.0.2",
-  description: "支持添加多条api并自命名&繁简互转&颜色重写",
+  description: "支持添加多条api&繁简互转&颜色重写",
   author: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
   
   globalParams: [
