@@ -184,6 +184,15 @@
       "url": "https://raw.githubusercontent.com/MakkaPakka518/FW/refs/heads/main/widgets/normal/ALLINONE.js"
     },
     {
+      "id": "Letterboxd_makka",
+      "title": "Letterboxd电影爱好者平台",
+      "description": "解析Letterboxd片单内的影片【修复404】",
+      "requiredVersion": "0.0.1",
+      "version": "1.1.1",
+      "author": "huangxd|𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
+      "url": "https://raw.githubusercontent.com/MakkaPakka518/FW/refs/heads/main/widgets/qt/letterboxd.js"
+    },
+    {
       "id": "imdb_cn_fix_",
       "title": "IMDb热榜",
       "description": "IMDb全球榜单，支持日/周纬度切换。",
