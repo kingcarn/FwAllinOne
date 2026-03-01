@@ -1,5 +1,5 @@
 WidgetMetadata = {
-    id: "Letterboxd_makka",
+    id: "Letterboxd",
     title: "Letterboxd电影爱好者平台",
     modules: [
         {
@@ -29,6 +29,80 @@ WidgetMetadata = {
                         value: ["select"],
                     },
                     enumOptions: [
+                        // --- 新增的最新/特色榜单 (置顶) ---
+                        {
+                            title: "2026年女性导演作品TOP52",
+                            value: "https://letterboxd.com/jack/list/52-films-by-women-directors-in-2026/"
+                        },
+                        {
+                            title: "2025女性导演作品TOP52",
+                            value: "https://letterboxd.com/jack/list/52-plus-films-by-women-directors-in-2025/"
+                        },
+                        {
+                            title: "你最期待2026年圣丹斯电影节的哪部电影？",
+                            value: "https://letterboxd.com/nextbestpicture/list/which-film-from-the-2026-sundance-film-festival/"
+                        },
+                        {
+                            title: "2026年最受期待电影",
+                            value: "https://letterboxd.com/nextbestpicture/list/which-film-are-you-most-looking-forward-to-3/"
+                        },
+                        {
+                            title: "2026年全年故事片",
+                            value: "https://letterboxd.com/timtamtitus/list/2026/"
+                        },
+                        {
+                            title: "2025年排名",
+                            value: "https://letterboxd.com/picklecat44/list/2025-ranked/"
+                        },
+                        {
+                            title: "letterboxd500大电影",
+                            value: "https://letterboxd.com/films/by/rating/"
+                        },
+                        {
+                            title: "女性导演电影Top250",
+                            value: "https://letterboxd.com/official/list/top-250-films-by-women-directors/"
+                        },
+                        {
+                            title: "女性导演的电影",
+                            value: "https://letterboxd.com/caonfilm/list/sapphic-films-directed-by-women/"
+                        },
+                        {
+                            title: "死前必看的1001部电影",
+                            value: "https://letterboxd.com/peterstanley/list/1001-movies-you-must-see-before-you-die/"
+                        },
+                        {
+                            title: "每个人一生中至少应该看一次的电影",
+                            value: "https://letterboxd.com/fcbarcelona/list/movies-everyone-should-watch-at-least-once/"
+                        },
+                        {
+                            title: "一些令人心碎的卑微的小心翼翼的电影",
+                            value: "https://letterboxd.com/filmbitten/list/a-film-that-breaks-your-heart-open-but-carefully/"
+                        },
+                        {
+                            title: "恐怖电影（我想我会死在这间屋子里）",
+                            value: "https://letterboxd.com/bgjulia/list/i-think-im-gonna-die-in-this-house/"
+                        },
+                        {
+                            title: "少女经典定义（美少女可能喜欢）",
+                            value: "https://letterboxd.com/darkestparadise/list/definition-of-girly-classics/"
+                        },
+                        {
+                            title: "电影结束后你就不是一个人了",
+                            value: "https://letterboxd.com/andredenervaux/list/youre-not-the-same-person-once-the-film-has/"
+                        },
+                        {
+                            title: "变态浪漫Top20",
+                            value: "https://letterboxd.com/crew/list/20-great-examples-of-kinky-romance-in-cinema/"
+                        },
+                        {
+                            title: "恐怖电影Top250",
+                            value: "https://letterboxd.com/official/list/top-250-horror-films/"
+                        },
+                        {
+                            title: "动画电影Top250",
+                            value: "https://letterboxd.com/official/list/top-250-animated-films/"
+                        },
+                        // --- 以下为原有的有效榜单 ---
                         {
                             title: "百万观看俱乐部",
                             value: "https://letterboxd.com/alexanderh/list/letterboxd-one-million-watched-club/"
@@ -335,10 +409,10 @@ WidgetMetadata = {
             ],
         },
     ],
-    version: "1.1.0",
+    version: "1.1.1",
     requiredVersion: "0.0.1",
-    description: "解析Letterboxd片单内的影片【修复404】",
-    author: "huangxd|𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
+    description: "解析Letterboxd片单内的影片【置顶新增大量特色片单】",
+    author: "huangxd｜𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
     site: "https://github.com/huangxd-/ForwardWidgets"
 };
 
