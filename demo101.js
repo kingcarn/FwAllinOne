@@ -1,7 +1,7 @@
 WidgetMetadata = {
-  id: "danmu.demo11.online",
+  id: "danmuttt.online",
   title: "弹幕多源",
-  version: "1.1.6", // 升级版本号
+  version: "1.1.7", // 升级版本号，完美修复颜色降级Bug
   requiredVersion: "0.0.2",
   description: "支持添加多条api并自命名&繁简互转&颜色重写",
   author: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
@@ -21,7 +21,7 @@ WidgetMetadata = {
               { title: "转繁体 (简->繁)", value: "s2t" }
           ]
       },
-      // 更新：通过文案平衡视觉体感
+      // 恢复真实的比例描述，因为Bug已经被彻底消灭！
       { 
           name: "colorMode", 
           title: "🎨 弹幕颜色", 
@@ -31,7 +31,7 @@ WidgetMetadata = {
               { title: "保持原样", value: "none" },
               { title: "全部纯白", value: "white" },
               { title: "部分彩色 (50%彩色)", value: "partial" },
-              { title: "完全彩色 (85%彩色)", value: "all" }
+              { title: "完全彩色 (100%彩色)", value: "all" }
           ]
       },
       { 
@@ -208,15 +208,16 @@ async function getCommentsById(params) {
           }
 
           if (colorMode && colorMode !== "none") {
+              // 彻底抛弃 00 开头的16进制色，改用B站绝对标准的防吞零安全色
               const COLORS = [
-                  16711680, // 红
-                  65280,    // 绿
-                  16776960, // 黄
-                  16737792, // 橙
-                  16711935, // 紫
-                  65535,    // 青
-                  16738740, // 粉
-                  3329330   // 亮蓝
+                  16711680, // 红 (FF0000)
+                  16776960, // 黄 (FFFF00)
+                  16752384, // 橘黄 (FF9900)
+                  16738740, // 粉红 (FF69B4)
+                  13445375, // 紫色 (CC33FF)
+                  3394662,  // 🟢 安全绿色 (33CC66) - 完美取代原来失效的绿
+                  3394815,  // 🥶 安全青色 (33CCFF) - 完美取代原来失效的青
+                  6737151   // 💧 安全亮蓝 (66CCFF, 天依蓝) - 取代失效的蓝
               ];
               const COLOR_WHITE = "16777215";
 
@@ -230,11 +231,12 @@ async function getCommentsById(params) {
                           if (colorMode === "white") {
                               targetColor = COLOR_WHITE;
                           } else if (colorMode === "partial") {
-                              // 修改为 60% 概率出彩色，但展示给用户的是体感50%
-                              targetColor = Math.random() < 0.6 
+                              // 代码改回真实的 50% 比例
+                              targetColor = Math.random() < 0.5 
                                   ? COLORS[Math.floor(Math.random() * COLORS.length)].toString() 
                                   : COLOR_WHITE;
                           } else if (colorMode === "all") {
+                              // 这次100%彩色是真正的100%了！
                               targetColor = COLORS[Math.floor(Math.random() * COLORS.length)].toString();
                           }
                           
