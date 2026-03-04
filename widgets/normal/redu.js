@@ -5,6 +5,7 @@ WidgetMetadata = {
     author: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
     version: "1.0.1", // 增加了横竖版年份日期与类型适配
     requiredVersion: "0.0.1",
+    site: "https://t.me/MakkaPakkaOvO",
     modules: [
         {
             title: "🎬 新片追踪",

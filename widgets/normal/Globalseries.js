@@ -11,6 +11,7 @@ WidgetMetadata = {
     author: "KingCarn",
     version: "2.1.2", // 🚀 修复：精准绑定 sort_by 触发右上角下拉菜单
     requiredVersion: "0.0.1",
+    site: "https://t.me/MakkaPakkaOvO",
     modules: [
         // ================= 模块 1：全球探索发现 =================
         {

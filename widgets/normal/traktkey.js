@@ -5,7 +5,7 @@ WidgetMetadata = {
     description: "内置 API Key 版：只需填写用户名即可使用。显示追剧日历、待看、收藏及历史记录。",
     version: "1.1.9", // 版本号微升
     requiredVersion: "0.0.1",
-    site: "https://trakt.tv",
+    site: "https://t.me/MakkaPakkaOvO",
 
     globalParams: [
         { name: "traktUser", title: "Trakt 用户名", type: "input", value: "" }

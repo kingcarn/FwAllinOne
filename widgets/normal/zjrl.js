@@ -5,7 +5,7 @@ WidgetMetadata = {
     description: "聚合全球剧集更新表&综艺排期&bangumi动漫周更表。",
     version: "2.1.3", // 🚀 升级版本：优化右上角交互逻辑，追剧选地区、综艺选地区、动漫选日期
     requiredVersion: "0.0.1",
-    site: "https://www.themoviedb.org",
+    site: "https://t.me/MakkaPakkaOvO",
     
     globalParams: [],
 

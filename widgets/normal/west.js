@@ -5,7 +5,7 @@ WidgetMetadata = {
     description: "聚合烂番茄(口碑)与流媒体平台(热度)，一站式掌握欧美影视动态。",
     version: "1.0.3", // 🚀 升级版本号：启用 sort_by 触发右上角下拉菜单，并修复二级联动
     requiredVersion: "0.0.1",
-    site: "https://www.rottentomatoes.com",
+    site: "https://t.me/MakkaPakkaOvO",
 
     modules: [
         {

@@ -5,7 +5,7 @@ WidgetMetadata = {
     description: "聚合【今天看什么】、【Trakt惊喜推荐】与【那年今日】、一站式发现好片。",
     version: "1.0.6", // 🚀 升级版本号：优化【那年今日】的右上角菜单显示
     requiredVersion: "0.0.1",
-    site: "https://www.themoviedb.org",
+    site: "https://t.me/MakkaPakkaOvO",
 
     // 1. 全局参数 (仅剩 Trakt 选填)
     globalParams: [

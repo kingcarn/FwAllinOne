@@ -5,6 +5,7 @@ WidgetMetadata = {
   description: "各平台独播剧，支持右上角快捷切换出品平台。",
   version: "1.1.0", // 🚀 升级版本号：加入右上角平台切换菜单
   requiredVersion: "0.0.1",
+  site: "https://t.me/MakkaPakkaOvO",
   modules: [
     {
       title: "独家原创 & 追更日历",

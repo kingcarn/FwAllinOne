@@ -5,7 +5,7 @@ WidgetMetadata = {
     description: "综艺更新时间表，热度榜",
     version: "2.0.4", // 更新版本号
     requiredVersion: "0.0.1",
-    site: "https://www.themoviedb.org",
+    site: "https://t.me/MakkaPakkaOvO",
 
     modules: [
         {

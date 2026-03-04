@@ -91,6 +91,7 @@ WidgetMetadata = {
     author: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
     version: "1.0.0",
     requiredVersion: "0.0.1",
+    site: "https://t.me/MakkaPakkaOvO",
     detailCacheDuration: 3600,
     modules: [
         {

@@ -5,7 +5,7 @@ WidgetMetadata = {
     description: "集大成之作：Trakt/豆瓣/平台分流，全线支持【日期•类型】展示。",
     version: "1.3.4", // 🚀 升级版本号：双模块均适配右上角菜单
     requiredVersion: "0.0.1",
-    site: "https://www.themoviedb.org",
+    site: "https://t.me/MakkaPakkaOvO",
     // 1. 全局参数 (仅剩 Trakt ID，且选填)
     globalParams: [
         {

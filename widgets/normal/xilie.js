@@ -5,7 +5,7 @@ WidgetMetadata = {
     description: "聚合【系列电影大满贯】与【趣味流派探索】，一键补番，探索未知。",
     version: "1.0.5", // 🚀 升级版本号：优化【趣味流派探索】的右上角菜单显示
     requiredVersion: "0.0.1",
-    site: "https://www.themoviedb.org",
+    site: "https://t.me/MakkaPakkaOvO",
 
     // 0. 全局免 Key
     globalParams: [],

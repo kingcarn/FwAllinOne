@@ -10,7 +10,7 @@ WidgetMetadata = {
     description: "防风控版本，提供给这个模块的普通版有问题的人使用。",
     version: "1.3.6", // 🚀 升级版本号：双模块均接入右上角快速切换菜单
     requiredVersion: "0.0.1",
-    site: "https://www.themoviedb.org",
+    site: "https://t.me/MakkaPakkaOvO",
     
     // 1. 全局参数 (仅剩 Trakt ID，且选填)
     globalParams: [

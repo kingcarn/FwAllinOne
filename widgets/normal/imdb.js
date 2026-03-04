@@ -5,7 +5,7 @@ WidgetMetadata = {
     description: "IMDb全球榜单，支持日/周维度切换。",
     version: "1.0.5", // 🚀 升级版本号：将榜单类型移至右上角快捷菜单
     requiredVersion: "0.0.1",
-    site: "https://www.themoviedb.org",
+    site: "https://t.me/MakkaPakkaOvO",
     globalParams: [],
     modules: [
         {

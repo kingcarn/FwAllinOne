@@ -1,7 +1,7 @@
 // =============UserScript=============
 // @name        影视聚合终极版 (内置Key)
 // @description 三合一：豆瓣全能推荐 | TMDB探索 | Trakt猜你喜欢
-// @author      Forward_User & Fix
+// @author      MakkaPakka 
 // =============UserScript=============
 
 // 🔑 已内置您提供的 Key
@@ -45,6 +45,7 @@ var WidgetMetadata = {
     author: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
     version: "1.2.0", // 🚀 升级版本号：加入右上角快捷菜单
     requiredVersion: "0.0.1",
+    site: "https://t.me/MakkaPakkaOvO",
 
     // 🔴 移除了所有全局参数
     globalParams: [],
