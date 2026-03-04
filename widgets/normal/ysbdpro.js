@@ -5,6 +5,7 @@ WidgetMetadata = {
   author: "阿米诺斯｜𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
   version: "1.0.0",
   requiredVersion: "0.0.1",
+  site: "https://t.me/MakkaPakkaOvO",
   detailCacheDuration: 60,
   modules: [
     // =============豆瓣模块=============
