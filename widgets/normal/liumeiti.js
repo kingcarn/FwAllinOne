@@ -5,7 +5,7 @@ WidgetMetadata = {
     description: "发现Netflix/HBO/腾讯/B站等平台自制内容",
     version: "1.0.6", // 🚀 升级版本号：将平台选择移至右上角下拉菜单
     requiredVersion: "0.0.1",
-    site: "https://www.themoviedb.org",
+    site: "https://t.me/MakkaPakkaOvO",
 
     globalParams: [],
 
