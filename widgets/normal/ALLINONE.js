@@ -11,6 +11,7 @@ var WidgetMetadata = {
     author: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
     version: "1.2.4", // 🚀 升级：把频道/平台选择移至右上角快捷菜单
     requiredVersion: "0.0.1",
+    site: "https://t.me/MakkaPakkaOvO",
     modules: [
         {
             title: "全网热播发现",
