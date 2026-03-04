@@ -413,7 +413,7 @@ WidgetMetadata = {
     requiredVersion: "0.0.1",
     description: "解析Letterboxd片单内的影片【置顶新增大量特色片单】",
     author: "huangxd｜𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
-    site: "https://github.com/huangxd-/ForwardWidgets"
+    site: "https://t.me/MakkaPakkaOvO"
 };
 
 async function extractLetterboxdUrlsFromResponse(responseData, minNum, maxNum) {
