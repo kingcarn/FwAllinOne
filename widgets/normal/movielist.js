@@ -5,6 +5,7 @@ WidgetMetadata = {
     author: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
     version: "1.4.0", // 🚀 升级版本：拆分为三个独立模块，每个模块独占右上角下拉菜单
     requiredVersion: "0.0.1",
+    site: "https://t.me/MakkaPakkaOvO",
     modules: [
         // ================= 模块 1：电影综合榜 =================
         {
