@@ -3,6 +3,7 @@ WidgetMetadata = {
   title: "弹幕多源",
   version: "1.1.5", // 回退花哨功能，彻底重构多源并发合并机制，解决短路截胡问题
   requiredVersion: "0.0.2",
+  site: "https://t.me/MakkaPakkaOvO",
   description: "支持多api、繁简互转、数量限制、关键词屏蔽、颜色重写",
   author: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
   
