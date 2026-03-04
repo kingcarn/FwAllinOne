@@ -25,7 +25,7 @@ var WidgetMetadata = {
     description: "一站式聚合多平台动漫榜单 (纯享TMDB海报版)。",
     version: "2.4.2", // 🚀 升级：找回经典“Bangumi追番日历”并接入严格TMDB映射
     requiredVersion: "0.0.1",
-    site: "https://bgm.tv",
+    site: "https://t.me/MakkaPakkaOvO",
 
     modules: [
         {
