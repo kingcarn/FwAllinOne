@@ -36,7 +36,7 @@ WidgetMetadata = {
   requiredVersion: "0.0.1",
   description: "获取VOD播放资源(内含21个VOD源)",
   author: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
-  site: "https://github.com/MakkaPakka518/FW",
+  site: "https://t.me/MakkaPakkaOvO",
   globalParams: [
     {
       name: "multiSource",
