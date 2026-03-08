@@ -9,7 +9,7 @@ var WidgetMetadata = {
     title: "全球影视平台ALL IN ONE",
     description: "全网最全的频道聚合：覆盖爱优腾、网飞、HBO、韩国tvN及各大卫视",
     author: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
-    version: "1.2.4", // 🚀 升级：把频道/平台选择移至右上角快捷菜单
+    version: "1.2.5", // 🚀 升级：把频道/平台选择移至右上角快捷菜单
     requiredVersion: "0.0.1",
     site: "https://t.me/MakkaPakkaOvO",
     modules: [
