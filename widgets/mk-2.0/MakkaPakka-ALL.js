@@ -17,26 +17,41 @@ const archiveFetchPromises = {};
 
 const DEFAULT_TRAKT_ID = "95b59922670c84040db3632c7aac6f33704f6ffe5cbf3113a056e37cb45cb482";
 
+const GLOBAL_GENRE_MAP_ALL = {
+    16: "动画", 10759: "动作冒险", 35: "喜剧", 18: "剧情", 14: "奇幻", 878: "科幻", 9648: "悬疑", 
+    10749: "爱情", 27: "恐怖", 10765: "科幻奇幻", 80: "犯罪", 99: "纪录片", 10751: "家庭", 
+    36: "历史", 10402: "音乐", 10770: "电视电影", 53: "惊悚", 10752: "战争", 37: "西部", 28: "动作", 12: "冒险",
+    10762: "儿童", 10763: "新闻", 10764: "真人秀", 10766: "肥皂剧", 10767: "脱口秀", 10768: "战综"
+};
+
+function getGlobalGenreText(ids) {
+    if (!ids || !Array.isArray(ids)) return "影视";
+    const genres = ids.map(id => GLOBAL_GENRE_MAP_ALL[id]).filter(Boolean);
+    return genres.length > 0 ? genres.slice(0, 2).join(" / ") : "影视";
+}
+
 // =========================================================================
-// 2. 终极聚合版 Widget Metadata
+// 2. 终极聚合版 Widget Metadata (完美六大阵营分类)
 // =========================================================================
 var WidgetMetadata = {
-    id: "super_ultimate_media_hub_makka",
+    id: "super_ultime_media_hub_makka",
     title: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖·终极聚合",
     description: "动漫、影剧、综艺、流行风向与平台分流一网打尽",
     author: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
-    version: "1.0.0", // 🚀 大一统：保留所有底层逻辑，完美扩展风向标与平台分流
+    version: "1.0.1", // 🚀 完美定版：修复奥斯卡数据，恢复完美六大阵营名，保留1100行全逻辑
     requiredVersion: "0.0.1",
     site: "https://t.me/MakkaPakkaOvO",
+    
     globalParams: [
         {
             name: "traktClientId",
-            title: "Trakt Client ID",
+            title: "选填Trakt Client ID",
             type: "input",
             description: "选填，不填则使用内置。Trakt 榜单专用。",
             value: ""
         }
     ],
+
     modules: [
         // ---------------- 大栏目 1：二次元全境聚合 ----------------
         {
@@ -49,13 +64,13 @@ var WidgetMetadata = {
                     name: "anime_source", title: "选择数据源", type: "enumeration", value: "cal",
                     enumOptions: [
                         { title: "Bangumi  追番日历", value: "cal" },
-                        { title: "Bilibili 热播榜单", value: "bili" },
+                        { title: "Bilibili 热榜榜单", value: "bili" },
                         { title: "Bangumi  近期热门", value: "hot" },
                         { title: "Bangumi  年季度榜", value: "rank" },
                         { title: "Bangumi  每日放送", value: "daily" },
                         { title: "TMDB动漫  热番新番", value: "tmdb" },
                         { title: "AniList  流行榜单", value: "anilist" },
-                        { title: "MAL动漫  权威榜单", value: "mal" }
+                        { title: "MAL动漫   权威榜单", value: "mal" }
                     ]
                 },
                 { name: "cal_day", title: "选择日期", type: "enumeration", value: "today", belongTo: { paramName: "anime_source", value: ["cal"] }, enumOptions: [ { title: "📅 今日更新", value: "today" }, { title: "周一 (月)", value: "1" }, { title: "周二 (火)", value: "2" }, { title: "周三 (水)", value: "3" }, { title: "周四 (木)", value: "4" }, { title: "周五 (金)", value: "5" }, { title: "周六 (土)", value: "6" }, { title: "周日 (日)", value: "7" } ] },
@@ -92,7 +107,7 @@ var WidgetMetadata = {
 
         // ---------------- 大栏目 3：全能电影榜 ----------------
         {
-            title: "🎬 全能电影榜单",
+            title: "🎬 全球电影榜单",
             functionName: "routeMovieOmni",
             type: "video",
             cacheDuration: 3600,
@@ -145,14 +160,13 @@ var WidgetMetadata = {
             ]
         },
 
-        // ---------------- 大栏目 5：影剧风向标 (IMDb + 烂番茄 + Trakt + 豆瓣) ----------------
+        // ---------------- 大栏目 5：影剧风向标 ----------------
         {
             title: "🧭 影剧流行榜单",
             functionName: "routeTrendsHub",
             type: "video", 
             cacheDuration: 3600,
             params: [
-                // 平台大类选择
                 {
                     name: "hub_source", 
                     title: "选择平台",
@@ -162,7 +176,7 @@ var WidgetMetadata = {
                         { title: "🟡 IMDb 权威榜单", value: "imdb" },
                         { title: "🍅 烂番茄风向标", value: "rt" },
                         { title: "🌍 Trakt 趋势榜", value: "trakt" },
-                        { title: "🫛 豆瓣 国内风向", value: "douban" }
+                        { title: "📺 豆瓣 国内风向", value: "douban" }
                     ]
                 },
                 // --- 依赖于 IMDb 的子榜单 ---
@@ -177,11 +191,10 @@ var WidgetMetadata = {
                         { title: "🔥 今日热榜 (Trending Day)", value: "trending_day" },
                         { title: "🌊 流行趋势 (Popular)", value: "popular" },
                         { title: "💎 高分神作 (Top Rated)", value: "top_rated" },
-                        { title: "🇨🇳 国产剧热度", value: "china_tv" },
-                        { title: "🇨🇳 国产电影热度", value: "china_movie" }
+                        { title: "🇨🇳 国产剧热度(模拟)", value: "china_tv" },
+                        { title: "🇨🇳 国产电影热度(模拟)", value: "china_movie" }
                     ]
                 },
-                // --- 仅限 IMDb 全球榜才有的“范围”筛选 ---
                 {
                     name: "mediaType",
                     title: "范围 (仅全球榜有效)",
@@ -300,7 +313,7 @@ var WidgetMetadata = {
 };
 
 // =========================================================================
-// 3. 智能路由分配器 (包含新增的风向标路由)
+// 3. 智能路由分配器
 // =========================================================================
 async function routeAnimeOmni(params) {
     const source = params.anime_source || "cal";
@@ -334,33 +347,25 @@ async function routeMovieOmni(params) {
     return [];
 }
 
-// 🚀 修改点：影剧风向标路由 (四大平台)
 async function routeTrendsHub(params) {
     const hubSource = params.hub_source || "imdb";
     const page = params.page || 1;
 
-    // 分流 烂番茄
     if (hubSource === "rt") {
         const rtSort = params.rt_sort || "rt_movies_home";
         return await loadRottenTomatoesTrends(rtSort, page);
     }
-    
-    // 分流 IMDb
     if (hubSource === "imdb") {
         const imdbSort = params.imdb_sort || "trending_week";
         const mediaType = params.mediaType || "all";
         return await loadImdbList(imdbSort, mediaType, page);
     }
-
-    // 分流 Trakt
     if (hubSource === "trakt") {
         const traktSort = params.trakt_sort || "trending";
         const traktType = params.traktType || "all";
         const traktClientId = params.traktClientId || DEFAULT_TRAKT_ID;
         return await handleTraktList(traktSort, traktType, traktClientId, page);
     }
-
-    // 分流 豆瓣
     if (hubSource === "douban") {
         const dbSort = params.db_sort || "db_tv_cn";
         let tag = "热门", type = "tv";
@@ -370,7 +375,6 @@ async function routeTrendsHub(params) {
         else if (dbSort === "db_tv_us") { tag = "美剧"; type = "tv"; }
         return await fetchDoubanAndMap(tag, type, page);
     }
-
     return [];
 }
 
@@ -400,13 +404,20 @@ function movie_buildItem(item) {
         description: `🎬电影 | ⭐ ${score}\n${item.overview || "暂无简介"}`, rating: item.vote_average || 0
     };
 }
+
 async function loadGeneralMovies(params) {
     const sortBy = params.sort_by || "popular";
     let endpoint = "/movie/popular";
     let queryParams = { language: "zh-CN", page: params.page || 1 };
+    
     if (sortBy === "top_rated") endpoint = "/movie/top_rated";
     else if (sortBy === "box_office") { endpoint = "/discover/movie"; queryParams.sort_by = "revenue.desc"; }
-    else if (sortBy === "oscar") { endpoint = "/discover/movie"; queryParams.with_keywords = "130760"; queryParams.sort_by = "vote_average.desc"; queryParams["vote_count.gte"] = 1000; }
+    else if (sortBy === "oscar") { 
+        endpoint = "/discover/movie"; 
+        queryParams.with_keywords = "818"; // 🚀 修复点：正确奥斯卡ID 818
+        queryParams.sort_by = "vote_average.desc"; 
+        queryParams["vote_count.gte"] = 1000; 
+    }
     try { const res = await Widget.tmdb.get(endpoint, { params: queryParams }); return (res.results || []).map(i => movie_buildItem(i)).filter(Boolean); } catch (e) { return []; }
 }
 async function loadYearlyBestMovies(params) {
@@ -430,19 +441,6 @@ const ADVANCED_GENRE_MAP = {
     "action": { movie: "28", tv: "10759" }, "comedy": { movie: "35", tv: "35" }, "romance": { movie: "10749", tv: "10749" }, "drama": { movie: "18", tv: "18" }, "fantasy": { movie: "14", tv: "10765" }, "animation": { movie: "16", tv: "16" }, "documentary": { movie: "99", tv: "99" }
 };
 const REGION_MAP = { "all": "", "cn": "CN", "hk": "HK", "tw": "TW", "hktw": "HK|TW", "jp": "JP", "kr": "KR", "jpkr": "JP|KR", "th": "TH", "sg": "SG", "my": "MY", "in": "IN", "apac": "CN|HK|TW|JP|KR|TH|SG|MY|IN", "us": "US", "gb": "GB", "de": "DE", "se": "SE", "europe": "GB|DE|FR|IT|ES|SE|NO|DK|FI|NL|BE|CH|AT|IE", "es": "ES", "mx": "MX", "latin": "ES|MX|AR|CO|CL|PE|VE" };
-
-const GLOBAL_GENRE_MAP_ALL = {
-    16: "动画", 10759: "动作冒险", 35: "喜剧", 18: "剧情", 14: "奇幻", 878: "科幻", 9648: "悬疑", 
-    10749: "爱情", 27: "恐怖", 10765: "科幻奇幻", 80: "犯罪", 99: "纪录片", 10751: "家庭", 
-    36: "历史", 10402: "音乐", 10770: "电视电影", 53: "惊悚", 10752: "战争", 37: "西部", 28: "动作", 12: "冒险",
-    10762: "儿童", 10763: "新闻", 10764: "真人秀", 10766: "肥皂剧", 10767: "脱口秀", 10768: "战综"
-};
-
-function getGlobalGenreText(ids) {
-    if (!ids || !Array.isArray(ids)) return "影视";
-    const genres = ids.map(id => GLOBAL_GENRE_MAP_ALL[id]).filter(Boolean);
-    return genres.length > 0 ? genres.slice(0, 2).join(" / ") : "影视";
-}
 
 async function fetchGenreRankData(mediaType, genre, region, sort_by, page) {
     const genreId = ADVANCED_GENRE_MAP[genre] ? ADVANCED_GENRE_MAP[genre][mediaType] : "";
