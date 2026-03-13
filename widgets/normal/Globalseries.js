@@ -9,7 +9,7 @@ WidgetMetadata = {
     title: "KC's 全球影视专区",
     description: "自由切换全球十几个国家与地区，探索纯正的本土电影与剧集",
     author: "KingCarn",
-    version: "2.1.9", // 🚀 修复：精准绑定 sort_by 触发右上角下拉菜单
+    version: "2.1.10", // 🚀 修复：精准绑定 sort_by 触发右上角下拉菜单
     requiredVersion: "0.0.1",
     modules: [
         // ================= 模块 1：全球探索发现 =================
@@ -104,6 +104,7 @@ WidgetMetadata = {
                         { title: "冒险 (Adventure)", value: "adventure" },
                         { title: "历史/真人秀 (History moive/Show TV)", value: "history" },
                         { title: "战争 (War)", value: "war" },
+						{ title: "音乐 (Music)", value: "music" },
                         { title: "家庭 (Family)", value: "family" }
                     ]
                 },
@@ -294,7 +295,8 @@ const ADVANCED_GENRE_MAP = {
     "documentary": { movie: "99", tv: "99" },
     "adventure": { movie: "12", tv: "10759" },
     "war": { movie: "10752", tv: "10768" },
-    "history": { movie: "36", tv: "10764" },
+    "history": { movie: "36", tv: "36" },
+	"music": { movie: "10402", tv: "10402" },
     "family": { movie: "10751", tv: "10751" }
 };
 
