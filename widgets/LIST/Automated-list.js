@@ -6,65 +6,51 @@
 // 1. Metadata definition (MUST be at top level)
 WidgetMetadata = {
   id: "makkapakka_hub_list",
-  title: "玛卡巴卡云端剧场",
-  description: "全网独家精选剧场与高质量榜单聚合",
-  author: "MakkaPakka",
+  title: "瑪卡巴卡雲端劇場",
+  description: "各個平臺劇場和豆瓣熱榜",
+  author: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
   version: "1.0.0",
   requiredVersion: "0.0.1",
   
-  // 全局参数，支持配置加速源
-  globalParams: [
-    {
-      name: "githubProxy",
-      title: "GitHub 加速源",
-      type: "input",
-      description: "国内网络如加载失败可填写代理源",
-      placeholders: [
-        { title: "ghproxy", value: "https://ghproxy.net/" }
-      ],
-      value: ""
-    }
-  ],
-  
   modules: [
     {
-      title: "豆瓣热榜",
-      description: "豆瓣实时热门影剧综",
+      title: "豆瓣熱榜",
+      description: "豆瓣實時熱門影劇綜",
       functionName: "loadDouban",
       type: "video",
       cacheDuration: 43200,
       params: [
         {
           name: "channel",
-          title: "榜单分类",
+          title: "榜單分類",
           type: "enumeration",
           value: "tv",
           enumOptions: [
-            { title: "全部剧集", value: "tv" },
-            { title: "国产剧", value: "tv_domestic" },
-            { title: "欧美剧", value: "tv_american" },
-            { title: "日剧", value: "tv_japanese" },
-            { title: "韩剧", value: "tv_korean" },
-            { title: "动画", value: "tv_animation" },
-            { title: "纪录片", value: "tv_documentary" },
-            { title: "国内综艺", value: "show_domestic" },
-            { title: "国外综艺", value: "show_foreign" }
+            { title: "全部劇集", value: "tv" },
+            { title: "大陸劇集", value: "tv_domestic" },
+            { title: "歐美劇集", value: "tv_american" },
+            { title: "日本劇集", value: "tv_japanese" },
+            { title: "南韓劇集", value: "tv_korean" },
+            { title: "動漫番劇", value: "tv_animation" },
+            { title: "紀錄片", value: "tv_documentary" },
+            { title: "大陸綜藝", value: "show_domestic" },
+            { title: "國外綜藝", value: "show_foreign" }
           ]
         }
       ]
     },
     {
-      title: "精选剧场",
-      description: "全网王牌剧场大盘点",
+      title: "各平臺劇場",
+      description: "網路平臺劇場榜單",
       functionName: "loadTheater",
       type: "video",
       cacheDuration: 43200,
       params: [
         {
           name: "brand",
-          title: "剧场品牌",
+          title: "劇場品牌",
           type: "enumeration",
-          value: "迷雾剧场",
+          value: "迷霧劇場",
           enumOptions: [
             { title: "迷雾剧场", value: "迷雾剧场" },
             { title: "白夜剧场", value: "白夜剧场" },
@@ -84,52 +70,52 @@ WidgetMetadata = {
         },
         {
           name: "status",
-          title: "播出状态",
+          title: "播出狀態",
           type: "enumeration",
           value: "all",
           enumOptions: [
             { title: "全部", value: "all" },
-            { title: "已开播", value: "aired" },
-            { title: "即将上线", value: "upcoming" }
+            { title: "已開播", value: "aired" },
+            { title: "即將推出", value: "upcoming" }
           ]
         }
       ]
     },
     {
-      title: "热门番剧",
-      description: "Bangumi 实时热榜",
+      title: "熱門番劇",
+      description: "Bangumi 實時熱榜",
       functionName: "loadBangumi",
       type: "video",
       cacheDuration: 43200,
       params: [
         {
           name: "country",
-          title: "国家地区",
+          title: "國家地區",
           type: "enumeration",
           value: "",
           enumOptions: [
             { title: "全部", value: "" },
             { title: "日本", value: "JP" },
-            { title: "中国大陆", value: "CN" },
-            { title: "美国", value: "US" },
-            { title: "韩国", value: "KR" }
+            { title: "大陸", value: "CN" },
+            { title: "美國", value: "US" },
+            { title: "南韓", value: "KR" }
           ]
         },
         {
           name: "genre",
-          title: "番剧类型",
+          title: "番劇類型",
           type: "enumeration",
           value: "",
           enumOptions: [
             { title: "全部", value: "" },
-            { title: "动作", value: "28" },
-            { title: "冒险", value: "12" },
-            { title: "动画", value: "16" },
-            { title: "喜剧", value: "35" },
+            { title: "動作", value: "28" },
+            { title: "冒險", value: "12" },
+            { title: "動畫", value: "16" },
+            { title: "喜劇", value: "35" },
             { title: "奇幻", value: "14" },
-            { title: "剧情", value: "18" },
+            { title: "劇情", value: "18" },
             { title: "科幻", value: "878" },
-            { title: "悬疑", value: "9648" }
+            { title: "懸疑", value: "9648" }
           ]
         }
       ]
@@ -144,9 +130,8 @@ WidgetMetadata = {
 /**
  * 封装数据获取方法，利用 Widget.http.get 获取云端 JSON
  */
-async function fetchCloudData(proxy, filename) {
-  const baseUrl = `https://raw.githubusercontent.com/MakkaPakka518/List/refs/heads/main/data/${filename}`;
-  const url = proxy ? `${proxy}${baseUrl}` : baseUrl;
+async function fetchCloudData(filename) {
+  const url = `https://raw.githubusercontent.com/MakkaPakka518/List/refs/heads/main/data/${filename}`;
   
   try {
     const response = await Widget.http.get(url, { decodable: true });
@@ -221,10 +206,10 @@ function formatToVideoItems(list) {
  * 模块 1：加载豆瓣榜单
  */
 async function loadDouban(params = {}) {
-  const { githubProxy = "", channel = "tv" } = params;
+  const { channel = "tv" } = params;
   console.log("Loading Douban:", channel);
   
-  const data = await fetchCloudData(githubProxy, "douban-hot.json");
+  const data = await fetchCloudData("douban-hot.json");
   if (!data || !data[channel]) return [];
   
   return formatToVideoItems(data[channel]);
@@ -234,10 +219,10 @@ async function loadDouban(params = {}) {
  * 模块 2：加载精选剧场
  */
 async function loadTheater(params = {}) {
-  const { githubProxy = "", brand = "迷雾剧场", status = "all" } = params;
+  const { brand = "迷雾剧场", status = "all" } = params;
   console.log(`Loading Theater: ${brand}, Status: ${status}`);
   
-  const data = await fetchCloudData(githubProxy, "theater-data.json");
+  const data = await fetchCloudData("theater-data.json");
   if (!data || !data[brand]) return [];
   
   let rawList = [];
@@ -256,10 +241,10 @@ async function loadTheater(params = {}) {
  * 模块 3：加载热门番剧 (带高级交叉筛选)
  */
 async function loadBangumi(params = {}) {
-  const { githubProxy = "", country = "", genre = "" } = params;
+  const { country = "", genre = "" } = params;
   console.log(`Loading Bangumi: Country=${country}, Genre=${genre}`);
   
-  const data = await fetchCloudData(githubProxy, "bangumi-hot.json");
+  const data = await fetchCloudData("bangumi-hot.json");
   if (!data) return [];
   
   let rawList = data.hot_anime || data.items || [];
