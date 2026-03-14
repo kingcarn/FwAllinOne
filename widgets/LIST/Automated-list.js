@@ -1,6 +1,6 @@
 /**
- * 玛卡巴卡云端剧场 Forward Widget
- * 聚合豆瓣榜单、精选剧场与热门番剧推荐
+ * 瑪卡巴卡雲端劇場 Forward Widget
+ * 聚合豆瓣榜單、精選劇場與熱門番劇推薦
  */
 
 // 1. Metadata definition (MUST be at top level)
@@ -9,7 +9,8 @@ WidgetMetadata = {
   title: "瑪卡巴卡雲端劇場",
   description: "各個平臺劇場和豆瓣熱榜",
   author: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
-  version: "1.0.0",
+  site: "https://t.me/MakkaPakkaOvO",
+  version: "1.0.2",
   requiredVersion: "0.0.1",
   
   modules: [
@@ -52,20 +53,20 @@ WidgetMetadata = {
           type: "enumeration",
           value: "迷霧劇場",
           enumOptions: [
-            { title: "迷雾剧场", value: "迷雾剧场" },
-            { title: "白夜剧场", value: "白夜剧场" },
-            { title: "X剧场", value: "X剧场" },
-            { title: "玛卡巴卡的悬疑剧", value: "玛卡巴卡的悬疑剧" },
-            { title: "生花剧场", value: "生花剧场" },
-            { title: "大家剧场", value: "大家剧场" },
-            { title: "小逗剧场", value: "小逗剧场" },
-            { title: "十分剧场", value: "十分剧场" },
-            { title: "板凳单元", value: "板凳单元" },
-            { title: "萤火单元", value: "萤火单元" },
-            { title: "正午阳光", value: "正午阳光" },
-            { title: "恋恋剧场", value: "恋恋剧场" },
-            { title: "悬疑剧场", value: "悬疑剧场" },
-            { title: "微尘剧场", value: "微尘剧场" }
+            { title: "迷霧劇場", value: "迷雾剧场" },
+            { title: "白夜劇場", value: "白夜剧场" },
+            { title: " X 劇場", value: "X剧场" },
+            { title: "瑪卡的片單", value: "玛卡巴卡的悬疑剧" },
+            { title: "生花劇場", value: "生花剧场" },
+            { title: "大家劇場", value: "大家剧场" },
+            { title: "小逗劇場", value: "小逗剧场" },
+            { title: "十分劇場", value: "十分剧场" },
+            { title: "板凳單元", value: "板凳单元" },
+            { title: "螢火單元", value: "萤火单元" },
+            { title: "正午陽光", value: "正午阳光" },
+            { title: "戀戀劇場", value: "恋恋剧场" },
+            { title: "懸疑劇場", value: "悬疑剧场" },
+            { title: "微塵劇場", value: "微尘剧场" }
           ]
         },
         {
@@ -88,19 +89,6 @@ WidgetMetadata = {
       type: "video",
       cacheDuration: 43200,
       params: [
-        {
-          name: "country",
-          title: "國家地區",
-          type: "enumeration",
-          value: "",
-          enumOptions: [
-            { title: "全部", value: "" },
-            { title: "日本", value: "JP" },
-            { title: "大陸", value: "CN" },
-            { title: "美國", value: "US" },
-            { title: "南韓", value: "KR" }
-          ]
-        },
         {
           name: "genre",
           title: "番劇類型",
@@ -238,23 +226,18 @@ async function loadTheater(params = {}) {
 }
 
 /**
- * 模块 3：加载热门番剧 (带高级交叉筛选)
+ * 模块 3：加载热门番剧 (只保留类型筛选)
  */
 async function loadBangumi(params = {}) {
-  const { country = "", genre = "" } = params;
-  console.log(`Loading Bangumi: Country=${country}, Genre=${genre}`);
+  const { genre = "" } = params;
+  console.log(`Loading Bangumi: Genre=${genre}`);
   
   const data = await fetchCloudData("bangumi-hot.json");
   if (!data) return [];
   
   let rawList = data.hot_anime || data.items || [];
 
-  // 1. 筛选国家
-  if (country !== "") {
-    rawList = rawList.filter(item => item.rawCountries && item.rawCountries.includes(country));
-  }
-  
-  // 2. 筛选类型
+  // 筛选类型
   if (genre !== "") {
     const genreId = parseInt(genre);
     rawList = rawList.filter(item => item.rawGenres && item.rawGenres.includes(genreId));
