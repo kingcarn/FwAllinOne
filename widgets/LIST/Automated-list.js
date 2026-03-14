@@ -5,7 +5,7 @@
 
 // 1. Metadata definition (MUST be at top level)
 WidgetMetadata = {
-  id: "makkapakka_hub",
+  id: "makkapakka_hub_list",
   title: "玛卡巴卡云端剧场",
   description: "全网独家精选剧场与高质量榜单聚合",
   author: "MakkaPakka",
