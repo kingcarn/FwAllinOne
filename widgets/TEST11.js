@@ -5,12 +5,12 @@
 
 // 1. Metadata definition (MUST be at top level)
 WidgetMetadata = {
-  id: "makkapakka_hub_list_0",
+  id: "makkapakka_hub_list_2.0_TEST11",
   title: "瑪卡巴卡の雲端劇場",
   description: "各個平臺劇場和豆瓣熱榜",
   author: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
   site: "https://t.me/MakkaPakkaOvO",
-  version: "1.0.6",
+  version: "1.0.7",
   requiredVersion: "0.0.1",
   
   modules: [
@@ -45,7 +45,8 @@ WidgetMetadata = {
           value: "default",
           enumOptions: [
             { title: "默認原序", value: "default" },
-            { title: "最近發布", value: "recent" },
+            { title: "最近更新", value: "updated" }, // 新增：追更專用
+            { title: "最近發布", value: "recent" },  // 保留：看新劇專用
             { title: "熱度最高", value: "heat" },
             { title: "流行趨勢", value: "trending" },
             { title: "高分優先", value: "rating" }
@@ -107,6 +108,7 @@ WidgetMetadata = {
           value: "default",
           enumOptions: [
             { title: "默認原序", value: "default" },
+            { title: "最近更新", value: "updated" },
             { title: "最近發布", value: "recent" },
             { title: "熱度最高", value: "heat" },
             { title: "流行趨勢", value: "trending" },
@@ -152,6 +154,7 @@ WidgetMetadata = {
           value: "default",
           enumOptions: [
             { title: "默認原序", value: "default" },
+            { title: "最近更新", value: "updated" },
             { title: "最近發布", value: "recent" },
             { title: "熱度最高", value: "heat" },
             { title: "流行趨勢", value: "trending" },
@@ -190,6 +193,7 @@ WidgetMetadata = {
           value: "default",
           enumOptions: [
             { title: "默認原序", value: "default" },
+            { title: "最近更新", value: "updated" },
             { title: "最近發布", value: "recent" },
             { title: "熱度最高", value: "heat" },
             { title: "流行趨勢", value: "trending" },
@@ -230,31 +234,31 @@ const Utils = {
     }
   },
 
-  // 👇 新增：核心排序引擎
   sortList(list, sortType) {
     if (!list || !Array.isArray(list) || list.length === 0) return list || [];
     if (!sortType || sortType === "default") return list;
 
-    // 複製一份陣列，避免污染原始緩存數據
     return [...list].sort((a, b) => {
       switch (sortType) {
+        case "updated":
+          // 最近更新：優先尋找 lastUpdateDate（需 Python 腳本配合），找不到則退化為 releaseDate
+          const updateA = a.lastUpdateDate ? new Date(a.lastUpdateDate).getTime() : (a.releaseDate ? new Date(a.releaseDate).getTime() : 0);
+          const updateB = b.lastUpdateDate ? new Date(b.lastUpdateDate).getTime() : (b.releaseDate ? new Date(b.releaseDate).getTime() : 0);
+          return updateB - updateA;
         case "recent":
-          // 按照日期排序（由新到舊）
+          // 最近發布：首播日期
           const dateA = a.releaseDate ? new Date(a.releaseDate).getTime() : 0;
           const dateB = b.releaseDate ? new Date(b.releaseDate).getTime() : 0;
           return dateB - dateA;
         case "heat":
-          // 熱度：按照總投票人數排序
           const heatA = parseFloat(a.voteCount || a.vote_count) || 0;
           const heatB = parseFloat(b.voteCount || b.vote_count) || 0;
           return heatB - heatA;
         case "trending":
-          // 趨勢：按照 TMDB popularity 指數排序
           const trendA = parseFloat(a.popularity) || 0;
           const trendB = parseFloat(b.popularity) || 0;
           return trendB - trendA;
         case "rating":
-          // 評分：按照 TMDB 評分排序
           const rateA = parseFloat(a.rating) || 0;
           const rateB = parseFloat(b.rating) || 0;
           return rateB - rateA;
@@ -264,7 +268,6 @@ const Utils = {
     });
   },
 
-  // 本地陣列分頁切割函數
   paginate(list, pageNum, pageSize = 24) {
     if (!list || !Array.isArray(list)) return [];
     const p = parseInt(pageNum) || 1;
@@ -279,11 +282,8 @@ const Utils = {
 async function loadDouban(params = {}) {
   const data = await Utils.fetch("douban-hot.json");
   if (data === Utils.emptyTips) return data;
-  
   let list = data?.[params.channel] || [];
-  // 1. 先排序
   list = Utils.sortList(list, params.sort_type);
-  // 2. 後分頁
   return Utils.paginate(list, params.page);
 }
 
@@ -293,10 +293,8 @@ async function loadDouban(params = {}) {
 async function loadTheater(params = {}) {
   const data = await Utils.fetch("theater-data.json");
   if (data === Utils.emptyTips) return data;
-  
   const brand = params.brand || "迷雾剧场";
   const status = params.status || "all";
-  
   const brandData = data[brand];
   if (!brandData) return [];
   
@@ -319,7 +317,6 @@ async function loadTheater(params = {}) {
 async function loadBangumi(params = {}) {
   const data = await Utils.fetch("bangumi-hot.json");
   if (data === Utils.emptyTips) return data;
-  
   let list = data?.hot_anime || data?.items || [];
 
   if (params.genre && params.genre !== "") {
@@ -337,7 +334,6 @@ async function loadBangumi(params = {}) {
 async function loadMangoTV(params = {}) {
   const data = await Utils.fetch("mgtv-hot.json");
   if (data === Utils.emptyTips) return data;
-
   const sort_by = params.sort_by || "tv";
   let list = data?.[sort_by] || [];
 
