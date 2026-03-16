@@ -4,9 +4,9 @@
  */
 
 WidgetMetadata = {
-  id: "makkapakka_hub_list_2.0",
-  title: "玛卡巴卡の云端剧场",
-  description: "各个平台剧场和豆瓣热榜",
+  id: "makkapakka_hub_list_2.0_test112",
+  title: "平台剧场",
+  description: "各個平臺劇場和豆瓣熱榜",
   author: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
   site: "https://t.me/MakkaPakkaOvO",
   version: "1.0.9",
@@ -14,27 +14,27 @@ WidgetMetadata = {
   
   modules: [
     {
-      title: "豆瓣热榜",
-      description: "豆瓣实时热门影剧综",
+      title: "豆瓣熱榜",
+      description: "豆瓣實時熱門影劇綜",
       functionName: "loadDouban",
       type: "video",
       cacheDuration: 43200,
       params: [
         {
           name: "channel",
-          title: "榜单分类",
+          title: "榜單分類",
           type: "enumeration",
           value: "tv",
           enumOptions: [
-            { title: "全部剧集", value: "tv" },
-            { title: "大陆剧集", value: "tv_domestic" },
-            { title: "欧美剧集", value: "tv_american" },
-            { title: "日本剧集", value: "tv_japanese" },
-            { title: "南韩剧集", value: "tv_korean" },
-            { title: "动漫番剧", value: "tv_animation" },
-            { title: "纪录片", value: "tv_documentary" },
-            { title: "大陆综艺", value: "show_domestic" },
-            { title: "国外综艺", value: "show_foreign" }
+            { title: "全部劇集", value: "tv" },
+            { title: "大陸劇集", value: "tv_domestic" },
+            { title: "歐美劇集", value: "tv_american" },
+            { title: "日本劇集", value: "tv_japanese" },
+            { title: "南韓劇集", value: "tv_korean" },
+            { title: "動漫番劇", value: "tv_animation" },
+            { title: "紀錄片", value: "tv_documentary" },
+            { title: "大陸綜藝", value: "show_domestic" },
+            { title: "國外綜藝", value: "show_foreign" }
           ]
         },
         {
@@ -43,61 +43,61 @@ WidgetMetadata = {
           type: "enumeration",
           value: "default",
           enumOptions: [
-            { title: "默认原序", value: "default" },
+            { title: "默認原序", value: "default" },
             { title: "最近更新", value: "updated" },
-            { title: "最近发布", value: "recent" },
-            { title: "热度最高", value: "heat" },
-            { title: "流行趋势", value: "trending" },
-            { title: "高分优先", value: "rating" }
+            { title: "最近發佈", value: "recent" },
+            { title: "熱度最高", value: "heat" },
+            { title: "流行趨勢", value: "trending" },
+            { title: "高分優先", value: "rating" }
           ]
         },
         {
           name: "page",
-          title: "页码",
+          title: "頁碼",
           type: "page",
           startPage: 1
         }
       ]
     },
     {
-      title: "各平台剧场",
-      description: "网络平台剧场榜单",
+      title: "各平臺劇場",
+      description: "網路平臺劇場榜單",
       functionName: "loadTheater",
       type: "video",
       cacheDuration: 43200,
       params: [
         {
           name: "brand",
-          title: "剧场品牌",
+          title: "劇場品牌",
           type: "enumeration",
-          value: "迷雾剧场",
+          value: "迷霧劇場",
           enumOptions: [
-            { title: "迷雾剧场", value: "迷雾剧场" },
-            { title: "白夜剧场", value: "白夜剧场" },
-            { title: " X 剧场", value: "X剧场" },
-            { title: "玛卡的片单", value: "玛卡巴卡的悬疑剧" },
-            { title: "横屏短剧", value: "横屏短剧" },
-            { title: "生花剧场", value: "生花剧场" },
-            { title: "大家剧场", value: "大家剧场" },
-            { title: "小逗剧场", value: "小逗剧场" },
-            { title: "十分剧场", value: "十分剧场" },
-            { title: "板凳单元", value: "板凳单元" },
-            { title: "萤火单元", value: "萤火单元" },
-            { title: "正午阳光", value: "正午阳光" },
-            { title: "恋恋剧场", value: "恋恋剧场" },
-            { title: "悬疑剧场", value: "悬疑剧场" },
-            { title: "微尘剧场", value: "微尘剧场" }
+            { title: "迷霧劇場", value: "迷雾剧场" },
+            { title: "白夜劇場", value: "白夜剧场" },
+            { title: " X 劇場", value: "X剧场" },
+            { title: "瑪卡的片單", value: "玛卡巴卡的悬疑剧" },
+            { title: "橫屏短劇", value: "横屏短剧" },
+            { title: "生花劇場", value: "生花剧场" },
+            { title: "大家劇場", value: "大家剧场" },
+            { title: "小逗劇場", value: "小逗剧场" },
+            { title: "十分劇場", value: "十分剧场" },
+            { title: "板凳單元", value: "板凳单元" },
+            { title: "螢火單元", value: "萤火单元" },
+            { title: "正午陽光", value: "正午阳光" },
+            { title: "戀戀劇場", value: "恋恋剧场" },
+            { title: "懸疑劇場", value: "悬疑剧场" },
+            { title: "微塵劇場", value: "微尘剧场" }
           ]
         },
         {
           name: "status",
-          title: "播出状态",
+          title: "播出狀態",
           type: "enumeration",
           value: "all",
           enumOptions: [
             { title: "全部", value: "all" },
-            { title: "已开播", value: "aired" },
-            { title: "即将推出", value: "upcoming" }
+            { title: "已開播", value: "aired" },
+            { title: "即將推出", value: "upcoming" }
           ]
         },
         {
@@ -106,44 +106,44 @@ WidgetMetadata = {
           type: "enumeration",
           value: "default",
           enumOptions: [
-            { title: "默认原序", value: "default" },
+            { title: "默認原序", value: "default" },
             { title: "最近更新", value: "updated" },
-            { title: "最近发布", value: "recent" },
-            { title: "热度最高", value: "heat" },
-            { title: "流行趋势", value: "trending" },
-            { title: "高分优先", value: "rating" }
+            { title: "最近發佈", value: "recent" },
+            { title: "熱度最高", value: "heat" },
+            { title: "流行趨勢", value: "trending" },
+            { title: "高分優先", value: "rating" }
           ]
         },
         {
           name: "page",
-          title: "页码",
+          title: "頁碼",
           type: "page",
           startPage: 1
         }
       ]
     },
     {
-      title: "热门番剧",
-      description: "Bangumi 实时热榜",
+      title: "熱門番劇",
+      description: "Bangumi 實時熱榜",
       functionName: "loadBangumi",
       type: "video",
       cacheDuration: 43200,
       params: [
         {
           name: "genre",
-          title: "番剧类型",
+          title: "番劇類型",
           type: "enumeration",
           value: "",
           enumOptions: [
             { title: "全部", value: "" },
-            { title: "动作", value: "28" },
-            { title: "冒险", value: "12" },
-            { title: "动画", value: "16" },
-            { title: "喜剧", value: "35" },
+            { title: "動作", value: "28" },
+            { title: "冒險", value: "12" },
+            { title: "動畫", value: "16" },
+            { title: "喜劇", value: "35" },
             { title: "奇幻", value: "14" },
-            { title: "剧情", value: "18" },
+            { title: "劇情", value: "18" },
             { title: "科幻", value: "878" },
-            { title: "悬疑", value: "9648" }
+            { title: "懸疑", value: "9648" }
           ]
         },
         {
@@ -152,37 +152,37 @@ WidgetMetadata = {
           type: "enumeration",
           value: "default",
           enumOptions: [
-            { title: "默认原序", value: "default" },
+            { title: "默認原序", value: "default" },
             { title: "最近更新", value: "updated" },
-            { title: "最近发布", value: "recent" },
-            { title: "热度最高", value: "heat" },
-            { title: "流行趋势", value: "trending" },
-            { title: "高分优先", value: "rating" }
+            { title: "最近發佈", value: "recent" },
+            { title: "熱度最高", value: "heat" },
+            { title: "流行趨勢", value: "trending" },
+            { title: "高分優先", value: "rating" }
           ]
         },
         {
           name: "page",
-          title: "页码",
+          title: "頁碼",
           type: "page",
           startPage: 1
         }
       ]
     },
     {
-      title: "芒果TV热榜",
-      description: "最新芒果TV热播剧集与综艺",
+      title: "芒果TV熱榜",
+      description: "最新芒果TV熱播劇集與綜藝",
       functionName: "loadMangoTV",
       type: "video",
       cacheDuration: 43200,
       params: [
         {
           name: "sort_by",
-          title: "类型",
+          title: "類型",
           type: "enumeration",
           value: "tv",
           enumOptions: [
-            { title: "全部剧集", value: "tv" },
-            { title: "王牌综艺", value: "show" }
+            { title: "全部劇集", value: "tv" },
+            { title: "王牌綜藝", value: "show" }
           ]
         },
         {
@@ -191,17 +191,17 @@ WidgetMetadata = {
           type: "enumeration",
           value: "default",
           enumOptions: [
-            { title: "默认原序", value: "default" },
+            { title: "默認原序", value: "default" },
             { title: "最近更新", value: "updated" },
-            { title: "最近发布", value: "recent" },
-            { title: "热度最高", value: "heat" },
-            { title: "流行趋势", value: "trending" },
-            { title: "高分优先", value: "rating" }
+            { title: "最近發佈", value: "recent" },
+            { title: "熱度最高", value: "heat" },
+            { title: "流行趨勢", value: "trending" },
+            { title: "高分優先", value: "rating" }
           ]
         },
         {
           name: "page",
-          title: "页码",
+          title: "頁碼",
           type: "page",
           startPage: 1
         }
