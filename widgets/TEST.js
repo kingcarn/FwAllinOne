@@ -1,130 +1,66 @@
 /**
- * 瑪卡巴卡雲端劇場 Forward Widget
- * 聚合豆瓣榜單、精選劇場與熱門番劇推薦
+ * 玛卡巴卡专属模块 - 芒果TV & 樱花动漫
  */
 
-// 1. Metadata definition (MUST be at top level)
-WidgetMetadata = {
-  id: "makkapakka_hub_list_2.0_test",
-  title: "test",
-  description: "各個平臺劇場和豆瓣熱榜",
-  author: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
+var WidgetMetadata = {
+  id: "makkapakka_extended_hub",
+  title: "芒果樱花精选",
+  description: "获取最新芒果TV热榜与樱花动漫推荐",
+  author: "MakkaPakka",
   site: "https://t.me/MakkaPakkaOvO",
-  version: "1.0.4",
+  version: "1.0.0",
   requiredVersion: "0.0.1",
-  
+  globalParams: [
+    {
+      name: "githubProxy",
+      title: "GitHub 加速源",
+      type: "input",
+      placeholders: [
+        { title: "ghproxy", value: "https://ghproxy.net/" }
+      ]
+    }
+  ],
   modules: [
     {
-      title: "豆瓣熱榜",
-      description: "豆瓣實時熱門影劇綜",
-      functionName: "loadDouban",
-      type: "video",
+      title: "芒果TV热榜",
+      functionName: "getMangoTV",
       cacheDuration: 43200,
       params: [
         {
-          name: "channel",
-          title: "榜單分類",
+          name: "sort_by",
+          title: "类型",
           type: "enumeration",
-          value: "tv",
           enumOptions: [
-            { title: "全部劇集", value: "tv" },
-            { title: "大陸劇集", value: "tv_domestic" },
-            { title: "歐美劇集", value: "tv_american" },
-            { title: "日本劇集", value: "tv_japanese" },
-            { title: "南韓劇集", value: "tv_korean" },
-            { title: "動漫番劇", value: "tv_animation" },
-            { title: "紀錄片", value: "tv_documentary" },
-            { title: "大陸綜藝", value: "show_domestic" },
-            { title: "國外綜藝", value: "show_foreign" }
+            { title: "全部剧集", value: "tv" },
+            { title: "王牌综艺", value: "show" }
           ]
         },
-        // 👇 新增：Forward 專屬分頁參數
         {
           name: "page",
-          title: "頁碼",
+          title: "页数",
           type: "page",
           startPage: 1
         }
       ]
     },
     {
-      title: "各平臺劇場",
-      description: "網路平臺劇場榜單",
-      functionName: "loadTheater",
-      type: "video",
+      title: "樱花动漫",
+      functionName: "getYinghua",
       cacheDuration: 43200,
       params: [
         {
-          name: "brand",
-          title: "劇場品牌",
+          name: "sort_by",
+          title: "类型",
           type: "enumeration",
-          value: "迷雾剧场",
           enumOptions: [
-            { title: "迷霧劇場", value: "迷雾剧场" },
-            { title: "白夜劇場", value: "白夜剧场" },
-            { title: " X 劇場", value: "X剧场" },
-            { title: "瑪卡的片單", value: "玛卡巴卡的悬疑剧" },
-            { title: "橫屏短劇", value: "横屏短剧" },
-            { title: "生花劇場", value: "生花剧场" },
-            { title: "大家劇場", value: "大家剧场" },
-            { title: "小逗劇場", value: "小逗剧场" },
-            { title: "十分劇場", value: "十分剧场" },
-            { title: "板凳單元", value: "板凳单元" },
-            { title: "螢火單元", value: "萤火单元" },
-            { title: "正午陽光", value: "正午阳光" },
-            { title: "戀戀劇場", value: "恋恋剧场" },
-            { title: "懸疑劇場", value: "悬疑剧场" },
-            { title: "微塵劇場", value: "微尘剧场" }
+            { title: "樱花日漫", value: "japanese" },
+            { title: "樱花国漫", value: "chinese" },
+            { title: "樱花美漫", value: "american" }
           ]
         },
-        {
-          name: "status",
-          title: "播出狀態",
-          type: "enumeration",
-          value: "all",
-          enumOptions: [
-            { title: "全部", value: "all" },
-            { title: "已開播", value: "aired" },
-            { title: "即將推出", value: "upcoming" }
-          ]
-        },
-        // 👇 新增：Forward 專屬分頁參數
         {
           name: "page",
-          title: "頁碼",
-          type: "page",
-          startPage: 1
-        }
-      ]
-    },
-    {
-      title: "熱門番劇",
-      description: "Bangumi 實時熱榜",
-      functionName: "loadBangumi",
-      type: "video",
-      cacheDuration: 43200,
-      params: [
-        {
-          name: "genre",
-          title: "番劇類型",
-          type: "enumeration",
-          value: "",
-          enumOptions: [
-            { title: "全部", value: "" },
-            { title: "動作", value: "28" },
-            { title: "冒險", value: "12" },
-            { title: "動畫", value: "16" },
-            { title: "喜劇", value: "35" },
-            { title: "奇幻", value: "14" },
-            { title: "劇情", value: "18" },
-            { title: "科幻", value: "878" },
-            { title: "懸疑", value: "9648" }
-          ]
-        },
-        // 👇 新增：Forward 專屬分頁參數
-        {
-          name: "page",
-          title: "頁碼",
+          title: "页数",
           type: "page",
           startPage: 1
         }
@@ -133,20 +69,17 @@ WidgetMetadata = {
   ]
 };
 
-// ============================================
-// Handler Functions
-// ============================================
-
 const Utils = {
-  emptyTips: [{ id: "empty", type: "text", title: "⚠️ 載入失敗", description: "請檢查網絡連線" }],
+  emptyTips: [{ id: "empty", type: "text", title: "⚠️ 加载失败", description: "请检查网络或配置 GitHub 加速" }],
 
-  async fetch(filename) {
-    const url = `https://raw.githubusercontent.com/MakkaPakka518/List/refs/heads/main/data/${filename}`;
+  async fetch(proxy, path) {
+    // 替换为你自己的 Github Raw 数据源地址
+    const url = `${proxy || ""}https://raw.githubusercontent.com/MakkaPakka518/List/refs/heads/main/data/${path}`;
     try {
       const resp = await Widget.http.get(url, { decodable: true });
       if (!resp?.data) return this.emptyTips;
       
-      // 相容 Forward 的兩種返回格式
+      // 兼容字符串形式的 JSON 返回
       if (typeof resp.data === "string") {
         return JSON.parse(resp.data);
       }
@@ -157,9 +90,11 @@ const Utils = {
     }
   },
 
-  // 👇 新增：本地陣列分頁切割函數 (預設每頁顯示 24 條)
+  // 本地数组切片分页，防止一次性渲染上百条数据导致 App 卡顿
   paginate(list, pageNum, pageSize = 24) {
-    if (!list || !Array.isArray(list)) return [];
+    if (!list || !Array.isArray(list) || list.length === 0 || list[0].id === "empty") {
+      return list || [];
+    }
     const p = parseInt(pageNum) || 1;
     const start = (p - 1) * pageSize;
     return list.slice(start, start + pageSize);
@@ -167,58 +102,23 @@ const Utils = {
 };
 
 /**
- * 模块 1：加载豆瓣榜单
+ * 芒果TV 热榜
  */
-async function loadDouban(params = {}) {
-  const data = await Utils.fetch("douban-hot.json");
+async function getMangoTV(params = {}) {
+  const data = await Utils.fetch(params.githubProxy, "mgtv-hot.json");
   if (data === Utils.emptyTips) return data;
   
-  const list = data?.[params.channel] || [];
-  // 返回切割後的分頁數據
+  const list = data?.[params.sort_by] || [];
   return Utils.paginate(list, params.page);
 }
 
 /**
- * 模块 2：加载精选剧场
+ * 樱花动漫
  */
-async function loadTheater(params = {}) {
-  const data = await Utils.fetch("theater-data.json");
+async function getYinghua(params = {}) {
+  const data = await Utils.fetch(params.githubProxy, "yinghua-hot.json");
   if (data === Utils.emptyTips) return data;
   
-  const brand = params.brand || "迷雾剧场";
-  const status = params.status || "all";
-  
-  const brandData = data[brand];
-  if (!brandData) return [];
-  
-  let list = [];
-  if (status === "aired") {
-    list = brandData.aired || [];
-  } else if (status === "upcoming") {
-    list = brandData.upcoming || [];
-  } else {
-    // 选"全部"时，把待播和已播合并
-    list = [...(brandData.upcoming || []), ...(brandData.aired || [])];
-  }
-  
-  // 返回切割後的分頁數據
-  return Utils.paginate(list, params.page);
-}
-
-/**
- * 模块 3：加载热门番剧 (类型筛选)
- */
-async function loadBangumi(params = {}) {
-  const data = await Utils.fetch("bangumi-hot.json");
-  if (data === Utils.emptyTips) return data;
-  
-  let list = data?.hot_anime || data?.items || [];
-
-  if (params.genre && params.genre !== "") {
-    const genreId = parseInt(params.genre);
-    list = list.filter(item => item.rawGenres && item.rawGenres.includes(genreId));
-  }
-  
-  // 返回切割後的分頁數據
+  const list = data?.[params.sort_by] || [];
   return Utils.paginate(list, params.page);
 }
