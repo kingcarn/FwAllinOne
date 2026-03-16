@@ -1,16 +1,16 @@
 /**
  * 瑪卡巴卡雲端劇場 Forward Widget
- * 聚合豆瓣榜單、精選劇場、熱門番劇與芒果TV推薦
+ * 聚合豆瓣榜單、精選劇場、熱門番劇與芒果TV推薦 (帶全局多維度排序)
  */
 
 // 1. Metadata definition (MUST be at top level)
 WidgetMetadata = {
-  id: "makkapakka_hub_list_2.0_test",
+  id: "makkapakka_hub_list_0",
   title: "瑪卡巴卡の雲端劇場",
   description: "各個平臺劇場和豆瓣熱榜",
   author: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
   site: "https://t.me/MakkaPakkaOvO",
-  version: "1.0.5",
+  version: "1.0.6",
   requiredVersion: "0.0.1",
   
   modules: [
@@ -36,6 +36,19 @@ WidgetMetadata = {
             { title: "紀錄片", value: "tv_documentary" },
             { title: "大陸綜藝", value: "show_domestic" },
             { title: "國外綜藝", value: "show_foreign" }
+          ]
+        },
+        {
+          name: "sort_type",
+          title: "排序方式",
+          type: "enumeration",
+          value: "default",
+          enumOptions: [
+            { title: "默認原序", value: "default" },
+            { title: "最近發布", value: "recent" },
+            { title: "熱度最高", value: "heat" },
+            { title: "流行趨勢", value: "trending" },
+            { title: "高分優先", value: "rating" }
           ]
         },
         {
@@ -88,6 +101,19 @@ WidgetMetadata = {
           ]
         },
         {
+          name: "sort_type",
+          title: "排序方式",
+          type: "enumeration",
+          value: "default",
+          enumOptions: [
+            { title: "默認原序", value: "default" },
+            { title: "最近發布", value: "recent" },
+            { title: "熱度最高", value: "heat" },
+            { title: "流行趨勢", value: "trending" },
+            { title: "高分優先", value: "rating" }
+          ]
+        },
+        {
           name: "page",
           title: "頁碼",
           type: "page",
@@ -120,6 +146,19 @@ WidgetMetadata = {
           ]
         },
         {
+          name: "sort_type",
+          title: "排序方式",
+          type: "enumeration",
+          value: "default",
+          enumOptions: [
+            { title: "默認原序", value: "default" },
+            { title: "最近發布", value: "recent" },
+            { title: "熱度最高", value: "heat" },
+            { title: "流行趨勢", value: "trending" },
+            { title: "高分優先", value: "rating" }
+          ]
+        },
+        {
           name: "page",
           title: "頁碼",
           type: "page",
@@ -145,6 +184,19 @@ WidgetMetadata = {
           ]
         },
         {
+          name: "sort_type",
+          title: "排序方式",
+          type: "enumeration",
+          value: "default",
+          enumOptions: [
+            { title: "默認原序", value: "default" },
+            { title: "最近發布", value: "recent" },
+            { title: "熱度最高", value: "heat" },
+            { title: "流行趨勢", value: "trending" },
+            { title: "高分優先", value: "rating" }
+          ]
+        },
+        {
           name: "page",
           title: "頁碼",
           type: "page",
@@ -163,13 +215,11 @@ const Utils = {
   emptyTips: [{ id: "empty", type: "text", title: "⚠️ 載入失敗", description: "請檢查網絡連線" }],
 
   async fetch(filename) {
-    // 已經去除 proxy 代理參數，直連你的 GitHub 數據庫
     const url = `https://raw.githubusercontent.com/MakkaPakka518/List/refs/heads/main/data/${filename}`;
     try {
       const resp = await Widget.http.get(url, { decodable: true });
       if (!resp?.data) return this.emptyTips;
       
-      // 相容 Forward 的兩種返回格式
       if (typeof resp.data === "string") {
         return JSON.parse(resp.data);
       }
@@ -180,7 +230,41 @@ const Utils = {
     }
   },
 
-  // 本地陣列分頁切割函數 (預設每頁顯示 24 條)
+  // 👇 新增：核心排序引擎
+  sortList(list, sortType) {
+    if (!list || !Array.isArray(list) || list.length === 0) return list || [];
+    if (!sortType || sortType === "default") return list;
+
+    // 複製一份陣列，避免污染原始緩存數據
+    return [...list].sort((a, b) => {
+      switch (sortType) {
+        case "recent":
+          // 按照日期排序（由新到舊）
+          const dateA = a.releaseDate ? new Date(a.releaseDate).getTime() : 0;
+          const dateB = b.releaseDate ? new Date(b.releaseDate).getTime() : 0;
+          return dateB - dateA;
+        case "heat":
+          // 熱度：按照總投票人數排序
+          const heatA = parseFloat(a.voteCount || a.vote_count) || 0;
+          const heatB = parseFloat(b.voteCount || b.vote_count) || 0;
+          return heatB - heatA;
+        case "trending":
+          // 趨勢：按照 TMDB popularity 指數排序
+          const trendA = parseFloat(a.popularity) || 0;
+          const trendB = parseFloat(b.popularity) || 0;
+          return trendB - trendA;
+        case "rating":
+          // 評分：按照 TMDB 評分排序
+          const rateA = parseFloat(a.rating) || 0;
+          const rateB = parseFloat(b.rating) || 0;
+          return rateB - rateA;
+        default:
+          return 0;
+      }
+    });
+  },
+
+  // 本地陣列分頁切割函數
   paginate(list, pageNum, pageSize = 24) {
     if (!list || !Array.isArray(list)) return [];
     const p = parseInt(pageNum) || 1;
@@ -196,7 +280,10 @@ async function loadDouban(params = {}) {
   const data = await Utils.fetch("douban-hot.json");
   if (data === Utils.emptyTips) return data;
   
-  const list = data?.[params.channel] || [];
+  let list = data?.[params.channel] || [];
+  // 1. 先排序
+  list = Utils.sortList(list, params.sort_type);
+  // 2. 後分頁
   return Utils.paginate(list, params.page);
 }
 
@@ -222,6 +309,7 @@ async function loadTheater(params = {}) {
     list = [...(brandData.upcoming || []), ...(brandData.aired || [])];
   }
   
+  list = Utils.sortList(list, params.sort_type);
   return Utils.paginate(list, params.page);
 }
 
@@ -239,6 +327,7 @@ async function loadBangumi(params = {}) {
     list = list.filter(item => item.rawGenres && item.rawGenres.includes(genreId));
   }
   
+  list = Utils.sortList(list, params.sort_type);
   return Utils.paginate(list, params.page);
 }
 
@@ -250,7 +339,8 @@ async function loadMangoTV(params = {}) {
   if (data === Utils.emptyTips) return data;
 
   const sort_by = params.sort_by || "tv";
-  const list = data?.[sort_by] || [];
+  let list = data?.[sort_by] || [];
 
+  list = Utils.sortList(list, params.sort_type);
   return Utils.paginate(list, params.page);
 }
