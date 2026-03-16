@@ -1,16 +1,15 @@
 /**
  * 瑪卡巴卡雲端劇場 Forward Widget
- * 聚合豆瓣榜單、精選劇場、熱門番劇與芒果TV推薦 (帶全局多維度排序)
+ * 聚合豆瓣榜單、精選劇場、熱門番劇與芒果TV推薦 (帶全局多維度排序 + 動態抓取更新時間)
  */
 
-// 1. Metadata definition (MUST be at top level)
 WidgetMetadata = {
-  id: "makkapakka_hub_list_2.0_TEST11",
+  id: "makkapakka_hub_list_2.0_test1111",
   title: "瑪卡巴卡の雲端劇場",
   description: "各個平臺劇場和豆瓣熱榜",
   author: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
   site: "https://t.me/MakkaPakkaOvO",
-  version: "1.0.7",
+  version: "1.0.8",
   requiredVersion: "0.0.1",
   
   modules: [
@@ -45,8 +44,8 @@ WidgetMetadata = {
           value: "default",
           enumOptions: [
             { title: "默認原序", value: "default" },
-            { title: "最近更新", value: "updated" }, // 新增：追更專用
-            { title: "最近發布", value: "recent" },  // 保留：看新劇專用
+            { title: "最近更新", value: "updated" },
+            { title: "最近發布", value: "recent" },
             { title: "熱度最高", value: "heat" },
             { title: "流行趨勢", value: "trending" },
             { title: "高分優先", value: "rating" }
@@ -77,7 +76,7 @@ WidgetMetadata = {
             { title: "白夜劇場", value: "白夜剧场" },
             { title: " X 劇場", value: "X剧场" },
             { title: "瑪卡的片單", value: "玛卡巴卡的悬疑剧" },
-            { title: "橫屏短劇", value: "横屏短剧" },
+            { title: "橫屏短剧", value: "横屏短剧" },
             { title: "生花劇場", value: "生花剧场" },
             { title: "大家劇場", value: "大家剧场" },
             { title: "小逗劇場", value: "小逗剧场" },
@@ -211,10 +210,6 @@ WidgetMetadata = {
   ]
 };
 
-// ============================================
-// Handler Functions
-// ============================================
-
 const Utils = {
   emptyTips: [{ id: "empty", type: "text", title: "⚠️ 載入失敗", description: "請檢查網絡連線" }],
 
@@ -223,30 +218,45 @@ const Utils = {
     try {
       const resp = await Widget.http.get(url, { decodable: true });
       if (!resp?.data) return this.emptyTips;
-      
-      if (typeof resp.data === "string") {
-        return JSON.parse(resp.data);
-      }
-      return resp.data;
+      return typeof resp.data === "string" ? JSON.parse(resp.data) : resp.data;
     } catch (e) {
       console.error(`[Error] ${url}: ${e.message}`);
       return this.emptyTips;
     }
   },
 
-  sortList(list, sortType) {
+  // 👇 注意這裡變成了 async，因為要去 TMDB 拉數據
+  async sortList(list, sortType) {
     if (!list || !Array.isArray(list) || list.length === 0) return list || [];
     if (!sortType || sortType === "default") return list;
 
-    return [...list].sort((a, b) => {
+    let processedList = [...list];
+
+    // 如果是用戶要看“最近更新”，就拿着 ID 去 TMDB 批量查日期
+    if (sortType === "updated") {
+      await Promise.all(processedList.map(async (item) => {
+        // 只查剧集（电影没有更新日期的概念），并且是 tmdb 类型的
+        if (item.type === "tmdb" && item.id && (!item.mediaType || item.mediaType === "tv") && !item.lastUpdateDate) {
+          try {
+            const detail = await Widget.tmdb.get(`/tv/${item.id}`);
+            if (detail && detail.last_air_date) {
+              item.lastUpdateDate = detail.last_air_date;
+            }
+          } catch (e) {
+            // 请求失败就静默处理，避免报错弹窗
+          }
+        }
+      }));
+    }
+
+    return processedList.sort((a, b) => {
       switch (sortType) {
         case "updated":
-          // 最近更新：優先尋找 lastUpdateDate（需 Python 腳本配合），找不到則退化為 releaseDate
+          // 有 lastUpdateDate 就用，没有就拿首播日期兜底
           const updateA = a.lastUpdateDate ? new Date(a.lastUpdateDate).getTime() : (a.releaseDate ? new Date(a.releaseDate).getTime() : 0);
           const updateB = b.lastUpdateDate ? new Date(b.lastUpdateDate).getTime() : (b.releaseDate ? new Date(b.releaseDate).getTime() : 0);
           return updateB - updateA;
         case "recent":
-          // 最近發布：首播日期
           const dateA = a.releaseDate ? new Date(a.releaseDate).getTime() : 0;
           const dateB = b.releaseDate ? new Date(b.releaseDate).getTime() : 0;
           return dateB - dateA;
@@ -277,19 +287,16 @@ const Utils = {
 };
 
 /**
- * 模組 1：加載豆瓣榜單
+ * 下面所有的 load 函数里，Utils.sortList 都加上了 await
  */
 async function loadDouban(params = {}) {
   const data = await Utils.fetch("douban-hot.json");
   if (data === Utils.emptyTips) return data;
   let list = data?.[params.channel] || [];
-  list = Utils.sortList(list, params.sort_type);
+  list = await Utils.sortList(list, params.sort_type);
   return Utils.paginate(list, params.page);
 }
 
-/**
- * 模組 2：加載精選劇場
- */
 async function loadTheater(params = {}) {
   const data = await Utils.fetch("theater-data.json");
   if (data === Utils.emptyTips) return data;
@@ -307,13 +314,10 @@ async function loadTheater(params = {}) {
     list = [...(brandData.upcoming || []), ...(brandData.aired || [])];
   }
   
-  list = Utils.sortList(list, params.sort_type);
+  list = await Utils.sortList(list, params.sort_type);
   return Utils.paginate(list, params.page);
 }
 
-/**
- * 模組 3：加載熱門番劇 (Bangumi)
- */
 async function loadBangumi(params = {}) {
   const data = await Utils.fetch("bangumi-hot.json");
   if (data === Utils.emptyTips) return data;
@@ -324,19 +328,16 @@ async function loadBangumi(params = {}) {
     list = list.filter(item => item.rawGenres && item.rawGenres.includes(genreId));
   }
   
-  list = Utils.sortList(list, params.sort_type);
+  list = await Utils.sortList(list, params.sort_type);
   return Utils.paginate(list, params.page);
 }
 
-/**
- * 模組 4：加載芒果TV熱榜
- */
 async function loadMangoTV(params = {}) {
   const data = await Utils.fetch("mgtv-hot.json");
   if (data === Utils.emptyTips) return data;
   const sort_by = params.sort_by || "tv";
   let list = data?.[sort_by] || [];
 
-  list = Utils.sortList(list, params.sort_type);
+  list = await Utils.sortList(list, params.sort_type);
   return Utils.paginate(list, params.page);
 }
