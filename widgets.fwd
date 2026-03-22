@@ -151,7 +151,7 @@
       "id": "danmu.pro.online",
       "title": "并发弹幕",
       "description": "支持多api、繁简互转、数量限制、关键词屏蔽、颜色重写",
-      "requiredVersion": "0.0.1",
+      "requiredVersion": "0.0.2",
       "version": "1.2.7",
       "author": "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
       "url": "https://raw.githubusercontent.com/MakkaPakka518/FW/refs/heads/main/widgets/danmu/Danmubinfa.js"
