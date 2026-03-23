@@ -301,6 +301,47 @@ function buildTmdbItem(item, mediaType) {
         year: yearStr,
         rating: item.vote_average
     };
+    // =================================================
+        // 🗓 一级栏目：追剧日历 (Airing Calendar)
+        // =================================================
+        {
+            title: "🗓 追剧日历",
+            description: "本周最新影视更新追踪",
+            functionName: "loadCalendarModule",
+            type: "video",
+            params: [
+                {
+                    name: "dateStr",
+                    title: "更新日期",
+                    type: "enumeration",
+                    value: "today",
+                    enumOptions: [
+                        { value: "today", title: "📺 今天更新" },
+                        { value: "1", title: "🔹 周一 (Monday)" },
+                        { value: "2", title: "🔹 周二 (Tuesday)" },
+                        { value: "3", title: "🔹 周三 (Wednesday)" },
+                        { value: "4", title: "🔹 周四 (Thursday)" },
+                        { value: "5", title: "🔹 周五 (Friday)" },
+                        { value: "6", title: "🔹 周六 (Saturday)" },
+                        { value: "7", title: "🔹 周日 (Sunday)" }
+                    ]
+                },
+                {
+                    name: "showType",
+                    title: "影视分类",
+                    type: "enumeration",
+                    value: "all",
+                    enumOptions: [
+                        { value: "all", title: "综合影剧" },
+                        { value: "tv", title: "📺 纯净剧集" },
+                        { value: "movie", title: "🎬 院线电影" },
+                        { value: "anime", title: "🌸 二次元动漫" },
+                        { value: "show", title: "🎤 娱乐综艺" }
+                    ]
+                },
+                { name: "page", title: "页码", type: "page" }
+            ]
+        },
 }
 
 async function loadTMDBModule(params) {
@@ -333,4 +374,79 @@ async function loadTMDBModule(params) {
         var items = (data && data.results) ? data.results : [];
         return items.map(function(item) { return buildTmdbItem(item, mode); });
     } catch (e) { return []; }
+}
+// ============================================================================
+// 🗓 模块逻辑：追剧日历 (实时计算本周更新)
+// ============================================================================
+
+async function loadCalendarModule(params) {
+    var dateChoice = params.dateStr || "today";
+    var showType = params.showType || "all";
+    var page = params.page || 1;
+    
+    // 📅 核心黑科技 1：实时计算目标日期 (算出本周一到周日的具体是哪一天 YYYY-MM-DD)
+    var targetDate = new Date();
+    if (dateChoice !== "today") {
+        var currentDay = targetDate.getDay(); 
+        var currentIsoDay = currentDay === 0 ? 7 : currentDay; // 强制转换：周日从 0 变成 7
+        var targetIsoDay = parseInt(dateChoice); // 获取下拉框里选择的 1 ~ 7
+        var diffDays = targetIsoDay - currentIsoDay; // 算出相差的天数
+        targetDate.setDate(targetDate.getDate() + diffDays);
+    }
+    
+    var year = targetDate.getFullYear();
+    var month = ("0" + (targetDate.getMonth() + 1)).slice(-2);
+    var day = ("0" + targetDate.getDate()).slice(-2);
+    var exactDateStr = year + "-" + month + "-" + day; // 最终得到比如 2024-05-20
+    
+    // 🌐 核心黑科技 2：拿着精准日期，去 TMDB “点杀”获取当天的影视
+    var baseUrl = "https://api.themoviedb.org/3/discover";
+    var commonParams = `api_key=${DEFAULT_TMDB_KEY}&language=zh-CN&page=${page}&sort_by=popularity.desc`;
+    var rawResults = [];
+
+    try {
+        // 📺 抓取剧集类 (包含 TV、动漫、综艺)
+        if (showType === 'tv' || showType === 'anime' || showType === 'show' || showType === 'all') {
+            var tvUrl = `${baseUrl}/tv?${commonParams}&air_date.gte=${exactDateStr}&air_date.lte=${exactDateStr}`;
+            
+            // 精准过滤流派 (剔除动漫和综艺，让剧集更纯粹)
+            if (showType === 'anime') tvUrl += "&with_genres=16";
+            if (showType === 'show') tvUrl += "&with_genres=10764";
+            if (showType === 'tv' || showType === 'all') tvUrl += "&without_genres=16,10764"; 
+
+            var resTv = await Widget.http.get(tvUrl);
+            var dataTv = safeJsonParse(resTv.data);
+            if (dataTv && dataTv.results) {
+                // 打上 media_type 标签，方便后续构建
+                dataTv.results.forEach(item => { item.media_type = 'tv'; rawResults.push(item); });
+            }
+        }
+
+        // 🎬 抓取电影类 (电影的日期字段和剧集不一样，是 primary_release_date)
+        if (showType === 'movie' || showType === 'all') {
+            var movieUrl = `${baseUrl}/movie?${commonParams}&primary_release_date.gte=${exactDateStr}&primary_release_date.lte=${exactDateStr}`;
+            var resMovie = await Widget.http.get(movieUrl);
+            var dataMovie = safeJsonParse(resMovie.data);
+            if (dataMovie && dataMovie.results) {
+                dataMovie.results.forEach(item => { item.media_type = 'movie'; rawResults.push(item); });
+            }
+        }
+
+        // 🌟 将结果按 TMDB 的流行度 (Popularity) 从高到低排序，避免好剧被烂剧挤下去
+        rawResults.sort(function(a, b) {
+            return (b.popularity || 0) - (a.popularity || 0);
+        });
+
+        if (rawResults.length === 0) {
+            return [{ title: "今日无更新", subTitle: "去别的日子看看吧", type: "text" }];
+        }
+
+        // 最终通过现有的 buildTmdbItem 渲染成卡片
+        return rawResults.map(function(item) {
+            return buildTmdbItem(item, item.media_type);
+        });
+
+    } catch (e) {
+        return [{ title: "错误", subTitle: e.message, type: "text" }];
+    }
 }
