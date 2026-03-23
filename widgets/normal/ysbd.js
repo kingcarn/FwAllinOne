@@ -43,7 +43,7 @@ var WidgetMetadata = {
     title: "影视榜单Lite",
     description: "豆瓣全能推荐 | TMDB探索 | 猜你想看",
     author: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
-    version: "1.2.1", // 🚀 升级版本号：优化豆瓣匹配逻辑，丢弃无TMDB数据项
+    version: "1.3.1", // 🚀 升级版本号：优化豆瓣匹配逻辑，丢弃无TMDB数据项
     requiredVersion: "0.0.1",
     site: "https://t.me/MakkaPakkaOvO",
 
