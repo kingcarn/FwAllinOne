@@ -82,6 +82,47 @@ var WidgetMetadata = {
                 { name: "page", title: "页码", type: "page" }
             ]
         },
+      // =================================================
+        // 🗓 一级栏目：追剧日历 (Airing Calendar)
+        // =================================================
+        {
+            title: "🗓 周更",
+            description: "本周最新影视更新追踪",
+            functionName: "loadCalendarModule",
+            type: "video",
+            params: [
+                {
+                    name: "dateStr",
+                    title: "更新日期",
+                    type: "enumeration",
+                    value: "today",
+                    enumOptions: [
+                        { value: "today", title: "📺 今天更新" },
+                        { value: "1", title: "🔹 周一 (Monday)" },
+                        { value: "2", title: "🔹 周二 (Tuesday)" },
+                        { value: "3", title: "🔹 周三 (Wednesday)" },
+                        { value: "4", title: "🔹 周四 (Thursday)" },
+                        { value: "5", title: "🔹 周五 (Friday)" },
+                        { value: "6", title: "🔹 周六 (Saturday)" },
+                        { value: "7", title: "🔹 周日 (Sunday)" }
+                    ]
+                },
+                {
+                    name: "showType",
+                    title: "影视分类",
+                    type: "enumeration",
+                    value: "all",
+                    enumOptions: [
+                        { value: "all", title: "综合影剧" },
+                        { value: "tv", title: "📺 纯净剧集" },
+                        { value: "movie", title: "🎬 院线电影" },
+                        { value: "anime", title: "🌸 二次元动漫" },
+                        { value: "show", title: "🎤 娱乐综艺" }
+                    ]
+                },
+                { name: "page", title: "页码", type: "page" }
+            ]
+        },
 
         // =================================================
         // 🔵 一级栏目 2：TMDB (The Movie Database)
@@ -301,47 +342,6 @@ function buildTmdbItem(item, mediaType) {
         year: yearStr,
         rating: item.vote_average
     };
-    // =================================================
-        // 🗓 一级栏目：追剧日历 (Airing Calendar)
-        // =================================================
-        {
-            title: "🗓 追剧日历",
-            description: "本周最新影视更新追踪",
-            functionName: "loadCalendarModule",
-            type: "video",
-            params: [
-                {
-                    name: "dateStr",
-                    title: "更新日期",
-                    type: "enumeration",
-                    value: "today",
-                    enumOptions: [
-                        { value: "today", title: "📺 今天更新" },
-                        { value: "1", title: "🔹 周一 (Monday)" },
-                        { value: "2", title: "🔹 周二 (Tuesday)" },
-                        { value: "3", title: "🔹 周三 (Wednesday)" },
-                        { value: "4", title: "🔹 周四 (Thursday)" },
-                        { value: "5", title: "🔹 周五 (Friday)" },
-                        { value: "6", title: "🔹 周六 (Saturday)" },
-                        { value: "7", title: "🔹 周日 (Sunday)" }
-                    ]
-                },
-                {
-                    name: "showType",
-                    title: "影视分类",
-                    type: "enumeration",
-                    value: "all",
-                    enumOptions: [
-                        { value: "all", title: "综合影剧" },
-                        { value: "tv", title: "📺 纯净剧集" },
-                        { value: "movie", title: "🎬 院线电影" },
-                        { value: "anime", title: "🌸 二次元动漫" },
-                        { value: "show", title: "🎤 娱乐综艺" }
-                    ]
-                },
-                { name: "page", title: "页码", type: "page" }
-            ]
-        },
 }
 
 async function loadTMDBModule(params) {
