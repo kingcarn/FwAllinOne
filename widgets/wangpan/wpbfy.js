@@ -9,25 +9,29 @@ var WidgetMetadata = {
     title: "☁️ 夸克播放源",
     description: "全自动搜索匹配夸克网盘中的影视文件",
     author: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
-    version: "2.0.1", // 升级一个小版本
+    version: "2.0.2", 
     requiredVersion: "0.0.1",
     site: "https://t.me/MakkaPakkaOvO",
 
+    // 💡 修复点：将需要永久保存的配置项放在 globalParams 中
+    globalParams: [
+        {
+            name: "cookie",
+            title: "夸克 Cookie",
+            type: "input",
+            description: "必填！填入夸克网盘 Cookie，用于检索资源",
+            value: ""
+        }
+    ],
+
     modules: [
         {
+            // stream 模块的 id 必须固定为 loadResource
             id: "loadResource",
             title: "加载夸克资源",
             functionName: "loadResource",
             type: "stream",
-            params: [
-                {
-                    name: "cookie",
-                    title: "夸克 Cookie",
-                    type: "input",
-                    description: "必填！填入夸克网盘 Cookie，用于检索资源",
-                    value: ""
-                }
-            ]
+            params: [] // 模块内部的 params 留空即可，底层会自动注入 globalParams
         }
     ]
 };
@@ -57,14 +61,15 @@ async function getQuarkDownloadUrl(fid, cookie) {
     return "";
 }
 
-// 核心函数
+// 核心函数：Forward 会自动把你要看的剧集参数传进来
 async function loadResource(params) {
+    // 这里的 params 已经自动包含了 globalParams 里的 cookie
     var cookie = (params.cookie || "").trim();
     if (!cookie) {
         return [{ name: "⚠️ 错误", description: "请先在模块设置中配置夸克 Cookie", url: "" }];
     }
 
-    // 解析 Forward 传过来的参数 (增加 parseInt 确保是数字类型)
+    // 解析 Forward 传过来的上下文参数 (增加 parseInt 确保是数字类型)
     var tmdbId = params.tmdbId;
     var type = params.type; 
     var seriesName = params.seriesName; 
@@ -84,7 +89,7 @@ async function loadResource(params) {
     // ==========================================
     // 步骤 1：利用 TMDB_ID 在夸克进行全局搜索
     // ==========================================
-    // 💡 修复点1：去掉 `=` 号，直接搜纯数字 279388，防止夸克搜索引擎分词失败
+    // 去掉 `=` 号，直接搜纯数字，防止夸克搜索引擎分词失败
     var searchKeyword = tmdbId ? String(tmdbId) : seriesName;
     var searchUrl = "https://drive.quark.cn/1/clouddrive/search?pr=ucpro&fr=pc&keyword=" + encodeURIComponent(searchKeyword);
     
@@ -111,7 +116,7 @@ async function loadResource(params) {
                     }
 
                     var folderFid = item.fid;
-                    // 💡 修复点2：使用夸克官方最稳的获取目录列表 API (sort/list)，并且将 limit 提升到 1000 防止文件过多被截断
+                    // 使用夸克官方最稳的获取目录列表 API (sort/list)，并且将 limit 提升到 1000
                     var listUrl = "https://drive.quark.cn/1/clouddrive/sort/list?pr=ucpro&fr=pc&pdir_fid=" + folderFid + "&limit=1000";
                     console.log(`[夸克源] 匹配到目标文件夹 [${itemName}]，正在拉取内部文件...`);
                     
@@ -155,7 +160,7 @@ async function loadResource(params) {
 
         if (type === "tv") {
             var filenameUpper = filename.toUpperCase();
-            // 💡 修复点3：增加更强的兼容性。即便网盘里只有 E01 或者写着 第1集 也能识别
+            // 增强版正则匹配：支持 S01E01, S1E1, E01 或者 第1集
             if (filenameUpper.includes(targetSE) || filenameUpper.includes(targetSEx)) {
                 isMatch = true;
             } else if (filenameUpper.includes(targetEOnly) && !filenameUpper.includes("S")) {
@@ -164,12 +169,12 @@ async function loadResource(params) {
                 isMatch = true;
             }
         } else {
-            // 电影
+            // 电影匹配逻辑：只要在这个 TMDB_ID 的文件夹里，就算匹配
             isMatch = true;
         }
 
         // ==========================================
-        // 步骤 3：获取直链并返回
+        // 步骤 3：为匹配成功的视频获取播放直链并返回
         // ==========================================
         if (isMatch) {
             console.log(`[夸克源] ✅ 成功匹配到对应集数文件: ${filename}`);
