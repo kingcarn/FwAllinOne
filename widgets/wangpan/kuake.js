@@ -186,3 +186,53 @@ async function loadQuarkDrive(params) {
         return [{ id: "error2", type: "text", title: "❌ 网络底层异常", description: "具体错误: " + (e.message || String(e)) }];
     }
 }
+/**
+ * 💡 新增：私人云盘影视智能刮削处理函数
+ * 用于在网盘文件列表浏览模块中，处理并关联影视资源信息。
+ * Forward Widget 将通过 ID、Media Type ("tv")、季和集这四个核心参数来自动绑定 TMDB 的海报和简介。
+ */
+function processListingWithSmartScraping(items, parentFolderTitle) {
+    // 强制使用“剧集”作为类型标题，有助于 Forward 的自动刮削器识别
+    const TV_GENRE_NAME = "剧集";
+
+    // 💡 提取灵魂 1：从父文件夹标题提取 showId. 格式: Name_TMDB_ID=xxxxxx
+    var showIdMatch = parentFolderTitle.match(/TMDB_ID=(\d+)/);
+    if (!showIdMatch) {
+        // 兜底逻辑：不是被标记为影视的文件夹。将列表项作为普通视频文件返回（只显示文件名）。
+        return items;
+            }
+    var showId = parseInt(showIdMatch[1]);
+
+    return items.map(function(item) {
+        // 假设网盘列表项具有标准的网络驱动器属性，如 'file_name' 和 'fid' (文件唯一ID) 或类似属性。
+        // 为了让 image_2.png 显示正确，必须存在文件名为 titles。
+        var filename = item.file_name || item.name || item.title;
+
+        // 💡 提取灵魂 2：文件名包含 `SxxExx` 或 `sxxexx` 的关键词匹配。
+        var seMatch = filename.match(/[Ss](\d+)[Ee](\d+)/);
+
+        if (seMatch) {
+            var season = parseInt(seMatch[1]);
+            var episode = parseInt(seMatch[2]);
+            return {
+                id: item.fid || item.id, // 用于该卡片选择功能的唯一 ID。
+                type: "video",
+                mediaType: "tv",
+                tmdbId: showId,
+                season: season,
+                episode: episode,
+                title: filename, // 原始文件名，Forward 会自动覆盖 show title。我想要 image_2.png 的效果。
+                // 💡 关键：这里必须 NIL 它们，才能触发 Forward 的刮削器去做它的工作。
+                description: nil,
+                posterPath: nil,
+                rating: nil,
+                genreTitle: TV_GENRE_NAME,
+                // 网络异常问题修复（图片image_0和1）：绝对不要在这里发送并行的 POST 调用来获取所有列表项的链接。
+                // 最好使用直连文件 URL 以防止列表加载超时。对于动态 URL，最好在点击播放时再按需获取 URL。
+                videoUrl: item.play_link || item.url || nil, // 假设网盘列表逻辑提供了直连 URL。
+            }
+        }
+        // 兜底：文件不匹配集数关键字，则保留为普通视频文件。
+        return item;
+    });
+}
