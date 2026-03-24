@@ -1,5 +1,5 @@
 // =============UserScript=============
-// @name        夸克网盘 (直连播放)
+// @name        夸克网盘 (直连播放) V1.1
 // @description 提取夸克网盘直链，极速无缝播放
 // @author      MakkaPakka 
 // =============UserScript=============
@@ -9,7 +9,7 @@ var WidgetMetadata = {
     title: "☁️ 夸克网盘直连",
     description: "私人云盘挂载模块",
     author: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
-    version: "1.0.0",
+    version: "1.1.0",
     requiredVersion: "0.0.1",
     site: "https://t.me/MakkaPakkaOvO",
 
@@ -39,7 +39,6 @@ var WidgetMetadata = {
     ]
 };
 
-// 工具函数：解析 JSON
 function safeJsonParse(data) {
     try {
         if (typeof data === 'object') return data;
@@ -47,7 +46,6 @@ function safeJsonParse(data) {
     } catch (e) { return null; }
 }
 
-// 核心功能：获取夸克网盘的真实直链
 async function getQuarkDownloadUrl(fid, cookie) {
     var url = "https://drive.quark.cn/1/clouddrive/file/download";
     var headers = {
@@ -55,10 +53,10 @@ async function getQuarkDownloadUrl(fid, cookie) {
         "Content-Type": "application/json",
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     };
-    var body = JSON.stringify({ "fids": [fid] });
+    var bodyStr = JSON.stringify({ "fids": [fid] });
 
     try {
-        var res = await Widget.http.post(url, { headers: headers, body: body });
+        var res = await Widget.http.post(url, { headers: headers, body: bodyStr, data: bodyStr });
         var data = safeJsonParse(res.data);
         if (data && data.code === 0 && data.data && data.data.length > 0) {
             return data.data[0].download_url;
@@ -69,18 +67,17 @@ async function getQuarkDownloadUrl(fid, cookie) {
     return "";
 }
 
-// 核心功能：读取网盘列表
 async function loadQuarkDrive(params) {
-    var cookie = params.cookie;
-    var fid = params.folderId || "0"; // 0 代表根目录
+    // 强制清理 Cookie 两端的空格和回车
+    var cookie = (params.cookie || "").trim();
+    var fid = (params.folderId || "0").trim(); 
 
     if (!cookie) {
         return [
-            { id: "empty1", type: "text", title: "⚠️ 未配置 Cookie", subTitle: "请在参数设置中填入你的夸克 Cookie" }
+            { id: "empty1", type: "text", title: "⚠️ 未配置 Cookie", description: "请在参数设置中填入你的夸克 Cookie" }
         ];
     }
 
-    // 夸克获取文件列表 API
     var url = "https://drive.quark.cn/1/clouddrive/file/sort?pr=ucpro&fr=pc";
     var headers = {
         "Cookie": cookie,
@@ -88,36 +85,52 @@ async function loadQuarkDrive(params) {
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         "Referer": "https://pan.quark.cn/"
     };
-    var body = JSON.stringify({
+    var bodyStr = JSON.stringify({
         "pdir_fid": fid,
         "fid": fid,
-        "limit": 100, // 每次加载 100 条
+        "limit": 100,
         "sort_type": 1,
         "sort_field": 1
     });
 
     try {
-        var res = await Widget.http.post(url, { headers: headers, body: body });
+        // 兼容 Forward 网络库：同时传入 body 和 data，防止有些框架只认其中一个
+        var reqOptions = { 
+            headers: headers, 
+            body: bodyStr, 
+            data: bodyStr 
+        };
+        
+        var res = await Widget.http.post(url, reqOptions);
+        
+        // 如果 Forward 网络请求失败，res 可能是 null
+        if (!res) {
+            throw new Error("HTTP 请求返回为空");
+        }
+
         var data = safeJsonParse(res.data);
 
+        // 如果夸克返回了错误码（比如 Cookie 失效）
         if (!data || data.code !== 0) {
             return [
-                { id: "error", type: "text", title: "❌ 连接失败", subTitle: data?.message || "Cookie可能已过期，请重新抓取", description: JSON.stringify(data) }
+                { 
+                    id: "error", 
+                    type: "text", 
+                    title: "❌ 夸克连接失败", 
+                    description: "状态码: " + (data?.code || "未知") + "\n信息: " + (data?.message || "Cookie可能已过期，请重新抓包获取。") 
+                }
             ];
         }
 
         var list = data.data.list || [];
         var items = [];
 
-        // 将文件和文件夹分离处理
         for (var i = 0; i < list.length; i++) {
             var file = list[i];
-            // 判断是否是视频文件 (常见格式)
             var isVideo = file.file_name.match(/\.(mp4|mkv|avi|mov|flv|wmv|ts)$/i);
-            var isFolder = file.file_type === 0 || file.obj_type === 2; // 夸克文件类型标识
+            var isFolder = file.file_type === 0 || file.obj_type === 2; 
 
             if (isVideo) {
-                // 异步获取视频播放直链
                 var playUrl = await getQuarkDownloadUrl(file.fid, cookie);
                 var sizeMb = (file.size / 1024 / 1024).toFixed(1);
 
@@ -126,30 +139,33 @@ async function loadQuarkDrive(params) {
                     type: "video", 
                     mediaType: "movie",
                     title: file.file_name,
-                    subTitle: "▶️ 直连播放 | 大小: " + sizeMb + " MB",
-                    description: "夸克网盘直连加速\n更新时间: " + new Date(file.updated_at).toLocaleString(),
-                    posterPath: "https://img.alicdn.com/imgextra/i2/O1CN01Z2kO2k1P3J1Q1X3Y2_!!6000000001784-2-tps-200-200.png", // 夸克默认占位图
-                    link: playUrl // 直接把直链丢给 Forward 播放器！
+                    description: "▶️ 直连播放 | 大小: " + sizeMb + " MB\n更新时间: " + new Date(file.updated_at).toLocaleString(),
+                    posterPath: "https://img.alicdn.com/imgextra/i2/O1CN01Z2kO2k1P3J1Q1X3Y2_!!6000000001784-2-tps-200-200.png",
+                    link: playUrl
                 });
             } else if (isFolder) {
-                // 如果是文件夹，渲染为特殊卡片
                 items.push({
                     id: file.fid,
-                    type: "text", // 文本类型，不可播放
+                    type: "text", 
                     title: "📁 [文件夹] " + file.file_name,
-                    subTitle: "目录 ID: " + file.fid,
-                    description: "将上面的 目录ID 复制到设置的【文件夹 ID】参数中，即可浏览该目录"
+                    description: "目录 ID: " + file.fid + "\n(将此 ID 复制到设置的【文件夹 ID】参数中，即可进入该目录)"
                 });
             }
         }
 
         if (items.length === 0) {
-            return [{ id: "empty2", type: "text", title: "空空如也", subTitle: "当前目录下没有视频或文件夹" }];
+            return [{ id: "empty2", type: "text", title: "空空如也", description: "当前目录下没有视频或文件夹" }];
         }
 
         return items;
 
     } catch (e) {
-        return [{ id: "error2", type: "text", title: "网络异常", subTitle: e.message }];
+        // 这次把真正的错误拦截并显示在屏幕上！
+        return [{ 
+            id: "error2", 
+            type: "text", 
+            title: "❌ 网络底层异常", 
+            description: "具体错误: " + (e.message || String(e)) + "\n这通常是因为网络不通或 HTTP 客户端不兼容。" 
+        }];
     }
 }
