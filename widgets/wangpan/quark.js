@@ -1,5 +1,5 @@
 // =============UserScript=============
-// @name        夸克网盘 (直连播放) V1.1
+// @name        夸克网盘 (直连播放) V1.2
 // @description 提取夸克网盘直链，极速无缝播放
 // @author      MakkaPakka 
 // =============UserScript=============
@@ -9,7 +9,7 @@ var WidgetMetadata = {
     title: "☁️ 夸克网盘直连",
     description: "私人云盘挂载模块",
     author: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
-    version: "1.1.0",
+    version: "1.2.0",
     requiredVersion: "0.0.1",
     site: "https://t.me/MakkaPakkaOvO",
 
@@ -47,6 +47,7 @@ function safeJsonParse(data) {
 }
 
 async function getQuarkDownloadUrl(fid, cookie) {
+    // 夸克的获取下载直链接口通常是 POST
     var url = "https://drive.quark.cn/1/clouddrive/file/download";
     var headers = {
         "Cookie": cookie,
@@ -68,58 +69,40 @@ async function getQuarkDownloadUrl(fid, cookie) {
 }
 
 async function loadQuarkDrive(params) {
-    // 强制清理 Cookie 两端的空格和回车
     var cookie = (params.cookie || "").trim();
     var fid = (params.folderId || "0").trim(); 
 
     if (!cookie) {
-        return [
-            { id: "empty1", type: "text", title: "⚠️ 未配置 Cookie", description: "请在参数设置中填入你的夸克 Cookie" }
-        ];
+        return [{ id: "empty1", type: "text", title: "⚠️ 未配置 Cookie", description: "请在参数设置中填入你的夸克 Cookie" }];
     }
 
-    var url = "https://drive.quark.cn/1/clouddrive/file/sort?pr=ucpro&fr=pc";
+    // 【核心修复】：改用 GET 请求，并将所有请求参数拼接到 URL 后面的问号里
+    var baseUrl = "https://drive.quark.cn/1/clouddrive/file/sort";
+    var queryParams = "?pr=ucpro&fr=pc&pdir_fid=" + fid + "&fid=" + fid + "&limit=100&sort_type=1&sort_field=1";
+    var url = baseUrl + queryParams;
+    
     var headers = {
         "Cookie": cookie,
-        "Content-Type": "application/json",
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         "Referer": "https://pan.quark.cn/"
     };
-    var bodyStr = JSON.stringify({
-        "pdir_fid": fid,
-        "fid": fid,
-        "limit": 100,
-        "sort_type": 1,
-        "sort_field": 1
-    });
 
     try {
-        // 兼容 Forward 网络库：同时传入 body 和 data，防止有些框架只认其中一个
-        var reqOptions = { 
-            headers: headers, 
-            body: bodyStr, 
-            data: bodyStr 
-        };
+        // 使用 Forward 标准的 GET 请求
+        var res = await Widget.http.get(url, { headers: headers });
         
-        var res = await Widget.http.post(url, reqOptions);
-        
-        // 如果 Forward 网络请求失败，res 可能是 null
-        if (!res) {
-            throw new Error("HTTP 请求返回为空");
-        }
+        if (!res) throw new Error("HTTP 请求返回为空");
 
         var data = safeJsonParse(res.data);
 
-        // 如果夸克返回了错误码（比如 Cookie 失效）
+        // 处理 Cookie 失效或其他业务错误
         if (!data || data.code !== 0) {
-            return [
-                { 
-                    id: "error", 
-                    type: "text", 
-                    title: "❌ 夸克连接失败", 
-                    description: "状态码: " + (data?.code || "未知") + "\n信息: " + (data?.message || "Cookie可能已过期，请重新抓包获取。") 
-                }
-            ];
+            return [{ 
+                id: "error", 
+                type: "text", 
+                title: "❌ 夸克连接失败", 
+                description: "状态码: " + (data?.code || "未知") + "\n信息: " + (data?.message || "Cookie可能已过期或格式错误。") 
+            }];
         }
 
         var list = data.data.list || [];
@@ -139,7 +122,7 @@ async function loadQuarkDrive(params) {
                     type: "video", 
                     mediaType: "movie",
                     title: file.file_name,
-                    description: "▶️ 直连播放 | 大小: " + sizeMb + " MB\n更新时间: " + new Date(file.updated_at).toLocaleString(),
+                    description: "▶️ 直连播放 | 大小: " + sizeMb + " MB\n(点击上方图片直接播放)",
                     posterPath: "https://img.alicdn.com/imgextra/i2/O1CN01Z2kO2k1P3J1Q1X3Y2_!!6000000001784-2-tps-200-200.png",
                     link: playUrl
                 });
@@ -160,12 +143,11 @@ async function loadQuarkDrive(params) {
         return items;
 
     } catch (e) {
-        // 这次把真正的错误拦截并显示在屏幕上！
         return [{ 
             id: "error2", 
             type: "text", 
             title: "❌ 网络底层异常", 
-            description: "具体错误: " + (e.message || String(e)) + "\n这通常是因为网络不通或 HTTP 客户端不兼容。" 
+            description: "具体错误: " + (e.message || String(e))
         }];
     }
 }
