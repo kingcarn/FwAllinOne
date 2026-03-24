@@ -5,7 +5,7 @@
 // =============UserScript=============
 
 var WidgetMetadata = {
-    id: "forward.quark.stream",
+    id: "forward.quark.stream_makka",
     title: "☁️ 夸克播放源",
     description: "全自动搜索匹配夸克网盘中的影视文件",
     author: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
