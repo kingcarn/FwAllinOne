@@ -535,22 +535,27 @@ async function loadVarietyShows(params = {}) {
         queryParams.sort_by = "vote_average.desc"; queryParams["vote_count.gte"] = 15; 
     }
 
-    try {
+try {
         const res = await Widget.tmdb.get("/discover/tv", { params: queryParams });
         const items = res.results || [];
         if (items.length === 0) return page === 1 ? [{ id: "empty", type: "text", title: "暂无综艺数据" }] : [];
         return items.map(item => {
             const date = item.release_date || item.first_air_date || ""; 
-            const score = item.vote_average ? item.vote_average.toFixed(1) : "暂无评分";
+            // 💡 删除了 const score = ... 这一行
+            
             let genreLabel = getGlobalGenreText(item.genre_ids);
             if (genreLabel === "影视") genreLabel = "综艺";
 
             return {
                 id: String(item.id), tmdbId: parseInt(item.id), type: "tmdb", mediaType: "tv", title: item.title || item.name,
-                genreTitle: genreLabel, releaseDate: date, subTitle: `⭐ ${score} | ${date ? date.substring(0, 4) : "未知"}`, 
-                description: `${date} · ⭐ ${score}\n${item.overview || "暂无简介"}`,
+                genreTitle: genreLabel, releaseDate: date, 
+                // 💡 修改1：去掉了 " ${score} | "
+                subTitle: `${date ? date.substring(0, 4) : "未知"}`, 
+                // 💡 修改2：去掉了 " ·  ${score}"
+                description: `${date}\n${item.overview || "暂无简介"}`,
                 posterPath: item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : "", 
-                backdropPath: item.backdrop_path ? `https://image.tmdb.org/t/p/w780${item.backdrop_path}` : "", rating: parseFloat(score) || 0
+                // 💡 修改3：删除了尾部的 ", rating: parseFloat(score) || 0"
+                backdropPath: item.backdrop_path ? `https://image.tmdb.org/t/p/w780${item.backdrop_path}` : ""
             };
         });
     } catch (e) { return [{ id: "err", type: "text", title: "加载失败" }]; }
