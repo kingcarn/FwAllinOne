@@ -608,12 +608,16 @@ async function searchRtTmdb(rtItem, rank) {
         if (rtItem.popcornScore) scores.push(`🍿 ${rtItem.popcornScore}%`);
         const customSub = scores.join("  ") || "烂番茄认证";
         const dateStr = match.first_air_date || match.release_date || "";
-        const score = match.vote_average ? match.vote_average.toFixed(1) : "0.0";
+        // 💡 删除了 const score = ... 这行
+        
         return {
             id: String(match.id), tmdbId: match.id, type: "tmdb", mediaType: rtItem.mediaType, title: `${rank}. ${match.name || match.title}`, 
             genreTitle: getGlobalGenreText(match.genre_ids) || (rtItem.mediaType === "movie" ? "电影" : "剧集"),
-            description: `${dateStr} · ⭐ ${score}\n原名: ${rtItem.title}`, releaseDate: dateStr, subTitle: customSub, 
-            posterPath: match.poster_path ? `https://image.tmdb.org/t/p/w500${match.poster_path}` : "", backdropPath: match.backdrop_path ? `https://image.tmdb.org/t/p/w780${match.backdrop_path}` : "", rating: match.vote_average
+            // 💡 修改1：去掉了 description 里的 " ·  ${score}"
+            description: `${dateStr}\n原名: ${rtItem.title}`, releaseDate: dateStr, subTitle: customSub, 
+            posterPath: match.poster_path ? `https://image.tmdb.org/t/p/w500${match.poster_path}` : "", 
+            // 💡 修改2：删除了代码末尾的 ", rating: match.vote_average"
+            backdropPath: match.backdrop_path ? `https://image.tmdb.org/t/p/w780${match.backdrop_path}` : ""
         };
     } catch (e) { return null; }
 }
@@ -622,12 +626,20 @@ function buildImdbItem(item, forceType) {
     if (!item) return null;
     const type = forceType || item.media_type || (item.title ? "movie" : "tv");
     const fullDate = item.release_date || item.first_air_date || ""; 
-    const score = item.vote_average ? item.vote_average.toFixed(1) : "0.0";
+    // 💡 删除了 const score = ... 这行
+
     return {
         id: String(item.id), tmdbId: parseInt(item.id), type: "tmdb", mediaType: type, title: item.title || item.name,
-        subTitle: fullDate ? `⭐ ${score} | ${fullDate}` : `⭐ ${score}`, description: fullDate ? `${fullDate} · ⭐ ${score}\n${item.overview || "暂无简介"}` : item.overview,
-        releaseDate: fullDate, posterPath: item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : "", backdropPath: item.backdrop_path ? `https://image.tmdb.org/t/p/w780${item.backdrop_path}` : "",
-        rating: parseFloat(score) || 0, year: fullDate.substring(0, 4), genreTitle: getGlobalGenreText(item.genre_ids) || (type === "tv" ? "剧集" : "电影"), _rating: parseFloat(score) || 0
+        // 💡 修改1：去掉星星拼接，有日期就只显示日期
+        subTitle: fullDate || "", 
+        // 💡 修改2：去掉 description 里的星星
+        description: fullDate ? `${fullDate}\n${item.overview || "暂无简介"}` : (item.overview || "暂无简介"),
+        releaseDate: fullDate, 
+        posterPath: item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : "", 
+        backdropPath: item.backdrop_path ? `https://image.tmdb.org/t/p/w780${item.backdrop_path}` : "",
+        // 💡 修改3：彻底删除了 rating 和 _rating 这两个会导致底层渲染评分的字段
+        year: fullDate.substring(0, 4), 
+        genreTitle: getGlobalGenreText(item.genre_ids) || (type === "tv" ? "剧集" : "电影")
     };
 }
 
