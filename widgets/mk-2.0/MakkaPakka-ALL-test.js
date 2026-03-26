@@ -62,7 +62,7 @@ var WidgetMetadata = {
     title: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖·终极聚合",
     description: "动漫、影剧、综艺、流行风向与平台分流一网打尽",
     author: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
-    version: "1.2.1", // 🚀 完美定版：修复奥斯卡数据，恢复完美六大阵营名，保留1100行全逻辑
+    version: "1.2.2", // 🚀 完美定版：修复奥斯卡数据，恢复完美六大阵营名，保留1100行全逻辑
     requiredVersion: "0.0.1",
     site: "https://t.me/MakkaPakkaOvO",
     
@@ -200,7 +200,7 @@ var WidgetMetadata = {
                         { title: "🟡 IMDb 权威榜单", value: "imdb" },
                         { title: "🍅 烂番茄风向标", value: "rt" },
                         { title: "🌍 Trakt 趋势榜", value: "trakt" },
-                        { title: "🫛 豆瓣 国内风向", value: "douban" }
+                        { title: "🟢 豆瓣 国内风向", value: "douban" }
                     ]
                 },
                 {
@@ -748,7 +748,7 @@ async function fetchDoubanAndMap(tag, type, page) {
         const promises = list.map(async item => {
             let finalItem = { 
                 id: `db_${item.id}`, type: "tmdb", mediaType: type, 
-                title: item.title, subTitle: `豆瓣🫛 ${item.rate}`, 
+                title: item.title, subTitle: `豆瓣 ${item.rate}`, 
                 description: `豆瓣 ${item.rate}\n暂无简介`, 
                 genreTitle: type === "tv" ? "剧集" : "电影",
                 posterPath: item.cover 
