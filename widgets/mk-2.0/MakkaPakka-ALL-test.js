@@ -55,7 +55,7 @@ function buildItem({ id, tmdbId, type, title, date, poster, backdrop, rating, ge
 // 2. 终极聚合版 Widget Metadata (史诗七大阵营)
 // =========================================================================
 var WidgetMetadata = {
-    id: "super_ultime_media_hub_makka",
+    id: "super_ultime_media_hub_makka_test",
     title: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖·终极聚合",
     description: "动漫、影剧、综艺、流行风向与平台分流一网打尽",
     author: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
