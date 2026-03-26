@@ -32,7 +32,8 @@ function getGlobalGenreText(ids) {
 
 // 统一 UI 卡片构建工厂
 function buildItem({ id, tmdbId, type, title, date, poster, backdrop, rating, genreText, subTitle, desc }) {
-    const baseInfo = date ? `${date} · ${subTitle || '⭐ ' + rating}` : (subTitle || `⭐ ${rating}`);
+    // 💡 核心修改1：去掉星星和评分的拼接，如果有日期和副标题，只用 "·" 将它们连接起来
+    const baseInfo = [date, subTitle].filter(Boolean).join(" · ");
     const overview = desc ? `\n${desc}` : "\n暂无简介";
 
     return {
@@ -42,11 +43,13 @@ function buildItem({ id, tmdbId, type, title, date, poster, backdrop, rating, ge
         mediaType: type,
         title: title,
         genreTitle: genreText || (type === "tv" ? "剧集" : "电影"), 
-        description: baseInfo + overview,
+        // 优化：防止把评分去掉后多出来空行
+        description: baseInfo ? (baseInfo + overview) : (desc || "暂无简介"),
         releaseDate: date,
         posterPath: poster ? `https://image.tmdb.org/t/p/w500${poster}` : "",
         backdropPath: backdrop ? `https://image.tmdb.org/t/p/w780${backdrop}` : "",
-        rating: parseFloat(rating) || 0,
+        // 💡 核心修改2：注释掉原生的 rating 属性，防止 Forward App 底层自带的评分组件渲染出来
+        // rating: parseFloat(rating) || 0,
         subTitle: subTitle
     };
 }
@@ -59,7 +62,7 @@ var WidgetMetadata = {
     title: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖·终极聚合",
     description: "动漫、影剧、综艺、流行风向与平台分流一网打尽",
     author: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
-    version: "1.2.0", // 🚀 完美定版：修复奥斯卡数据，恢复完美六大阵营名，保留1100行全逻辑
+    version: "1.2.1", // 🚀 完美定版：修复奥斯卡数据，恢复完美六大阵营名，保留1100行全逻辑
     requiredVersion: "0.0.1",
     site: "https://t.me/MakkaPakkaOvO",
     
