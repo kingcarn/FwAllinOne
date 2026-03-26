@@ -447,20 +447,23 @@ async function fetchGenreRankData(mediaType, genre, region, sort_rule, page) {
         const today = new Date(); today.setMonth(today.getMonth() + 1); const maxDate = today.toISOString().split('T')[0];
         if (mediaType === "movie") queryParams["primary_release_date.lte"] = maxDate; else queryParams["first_air_date.lte"] = maxDate;
     }
-    try {
+try {
         const res = await Widget.tmdb.get(`/discover/${mediaType}`, { params: queryParams });
         return (res.results || []).map(item => {
             const date = item.release_date || item.first_air_date || ""; 
-            const score = item.vote_average ? item.vote_average.toFixed(1) : "暂无评分";
+            // 💡 删除了 const score = ... 这行，因为用不到了
+            
             return {
                 id: String(item.id), tmdbId: parseInt(item.id), type: "tmdb", mediaType: mediaType, title: item.title || item.name,
                 genreTitle: getGlobalGenreText(item.genre_ids),
                 releaseDate: date,
-                subTitle: `⭐ ${score} | ${date ? date.substring(0, 4) : "未知"}`, 
-                description: `${date} · ⭐ ${score}\n${item.overview || "暂无简介"}`,
+                // 💡 修改1：去掉 subTitle 里的 " ${score} | "，只保留纯年份
+                subTitle: `${date ? date.substring(0, 4) : "未知"}`, 
+                // 💡 修改2：去掉 description 里的 " ·  ${score}"，只保留完整日期和简介
+                description: `${date}\n${item.overview || "暂无简介"}`,
                 posterPath: item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : "", 
                 backdropPath: item.backdrop_path ? `https://image.tmdb.org/t/p/w780${item.backdrop_path}` : "", 
-                rating: parseFloat(score) || 0,
+                // 💡 修改3：彻底删除了 rating: parseFloat(score) || 0, 这一行
                 _popularity: item.popularity || 0,
                 _date: date || "1970-01-01"
             };
