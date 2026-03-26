@@ -394,10 +394,10 @@ function movie_buildItem(item) {
     return {
         id: String(item.id), tmdbId: parseInt(item.id), type: "tmdb", mediaType: "movie",
         title: item.title, releaseDate: releaseDate, genreTitle: movie_getGenreText(item.genre_ids),    
-        subTitle: `⭐ ${score} | ${releaseDate.substring(0,4)}`,            
+        subTitle: `${releaseDate.substring(0,4)}`,            
         posterPath: item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : "", 
         backdropPath: item.backdrop_path ? `https://image.tmdb.org/t/p/w780${item.backdrop_path}` : "", 
-        description: `🎬电影 | ⭐ ${score}\n${item.overview || "暂无简介"}`, rating: item.vote_average || 0
+        description: `电影\n${item.overview || "暂无简介"}`
     };
 }
 async function loadGeneralMovies(params) {
