@@ -1,6 +1,8 @@
 // =========================================================================
 // 1. 全局配置与缓存变量 (必须置于顶部)
 // =========================================================================
+const BASE_DATA_URL = "https://raw.githubusercontent.com/opix-maker/Forward/main";
+const RECENT_DATA_URL = `${BASE_DATA_URL}/recent_data.json`;
 const currentYear = new Date().getFullYear();
 const startYear = Math.max(currentYear + 1, 2026); 
 const yearOptions = [];
