@@ -1,8 +1,8 @@
 WidgetMetadata = {
-  id: "guduo_hot_list",
-  title: "骨朵全网热度榜",
-  description: "每日更新的剧集、动漫、综艺、电影全网热度排行",
-  author: "MakkaPakka",
+  id: "guduo_hot_list_makka",
+  title: "骨朵热度指数榜",
+  description: "每日更新的CN剧集、动漫、综艺、电影全网热度排行",
+  author: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
   version: "1.0.1",
   requiredVersion: "0.0.1", 
   modules: [
@@ -19,10 +19,10 @@ WidgetMetadata = {
           type: "enumeration",
           value: "剧集", 
           enumOptions: [
-            { title: "全网剧集", value: "剧集" },
-            { title: "全网动漫", value: "动漫" },
-            { title: "全网综艺", value: "综艺" },
-            { title: "网络电影", value: "电影" }
+            { title: "陸劇", value: "剧集" },
+            { title: "國漫", value: "动漫" },
+            { title: "綜藝", value: "综艺" },
+            { title: "電影", value: "电影" }
           ]
         }
       ]
