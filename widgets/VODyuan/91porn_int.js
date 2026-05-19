@@ -755,7 +755,7 @@ WidgetMetadata = {
     id: '91porn_int',
     title: '91Porn',
     description: '91Porn',
-    version: "0.9.7",
+    version: "0.9.8",
     requiredVersion: '0.0.1',
     author: "網路",
     site: 'https://github.com/baranwang/forward-widget',
@@ -891,13 +891,53 @@ async function getList(params) {
 }
 async function loadDetail(url) {
     try {
-        var _script_match;
+        var _script_match, _player_data_src;
+        const USER_AGENT = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1';
         const $ = await widgetAPI.getHtml(url);
+
+        // 多重提取：逐步尝试多个来源
+        let videoUrl = '';
         const player = $('#player_one');
         const script = player.find("script").text();
-        const sourceHtml = decodeURIComponent((null == (_script_match = script.match(/strencode2\("(.*?)"\)/)) ? void 0 : _script_match[1]) || '');
-        const $source = Widget.html.load(sourceHtml);
-        const videoUrl = $source('source').attr('src');
+
+        // 方法1: strencode2解码提取
+        if (!videoUrl && script) {
+            var _encodedContent;
+            const encodedContent = null == (_script_match = script.match(/strencode2\("(.*?)"\)/)) ? void 0 : _script_match[1];
+            if (encodedContent) {
+                try {
+                    const sourceHtml = decodeURIComponent(encodedContent);
+                    const $source = Widget.html.load(sourceHtml);
+                    videoUrl = $source('source').attr('src') || '';
+                } catch (e) {}
+            }
+        }
+        // 方法2: data-src (新版网站可能改用这个)
+        if (!videoUrl) {
+            videoUrl = player.attr('data-src') || player.attr('data-video') || '';
+        }
+        // 方法3: 页面中的<video>标签
+        if (!videoUrl) {
+            videoUrl = $('video[src]').attr('src') || $('video source[src]').attr('src') || $('source[src*=".mp4"]').attr('src') || $('source[src*=".m3u8"]').attr('src') || '';
+        }
+        // 方法4: og:video meta
+        if (!videoUrl) {
+            videoUrl = $('meta[property="og:video"]').attr('content') || $('meta[property="og:video:url"]').attr('content') || '';
+        }
+        // 方法5: 脚本中搜索视频URL
+        if (!videoUrl) {
+            const allScripts = $('script').map((i, el) => $(el).html()).get();
+            for (const s of allScripts) {
+                if (!s) continue;
+                var _urlMatch;
+                const urlMatch = s.match(/['"]?(https?:\/\/[^'"\s]+\.(m3u8[^'"\s]*|mp4[^'"\s]*))['"]?/);
+                if (urlMatch) {
+                    videoUrl = urlMatch[1];
+                    break;
+                }
+            }
+        }
+
         if (!videoUrl) throw new Error("未找到视频资源");
         const result = {
             id: url,
@@ -905,11 +945,12 @@ async function loadDetail(url) {
             mediaType: 'movie',
             link: url,
             title: $('#videodetails h4').first().text().trim(),
-            backdropPath: player.attr('poster'),
+            backdropPath: player.attr('poster') || $('video').attr('poster') || '',
             videoUrl,
             customHeaders: {
                 Referer: url,
-                'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1'
+                'User-Agent': USER_AGENT,
+                'Accept': 'video/mp4,video/x-m4v,application/vnd.apple.mpegurl,*/*'
             }
         };
         try {
