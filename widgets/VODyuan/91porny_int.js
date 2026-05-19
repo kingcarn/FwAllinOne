@@ -1101,6 +1101,8 @@ async function loadDetail(url) {
 
         if (!videoUrl) throw new Error("未找到视频资源");
 
+        console.log("91porny_int 提取到的视频URL: " + videoUrl);
+
         const result = {
             id: url,
             type: 'detail',
