@@ -1101,7 +1101,8 @@ async function loadDetail(url) {
 
         if (!videoUrl) throw new Error("未找到视频资源");
 
-        console.log("91porny_int 提取到的视频URL: " + videoUrl);
+        // 自动检测是否为HLS流
+        const isHls = videoUrl.toLowerCase().includes('.m3u8');
 
         const result = {
             id: url,
@@ -1112,6 +1113,7 @@ async function loadDetail(url) {
             releaseDate: (null == (_$_attr1 = $('meta[property="video:release_date"]').attr('content')) ? void 0 : _$_attr1.trim()) || '',
             backdropPath: video.attr('data-poster') || $('video').attr('poster') || '',
             videoUrl,
+            isHls,
             customHeaders: {
                 Referer: realUrl,
                 'User-Agent': USER_AGENT,

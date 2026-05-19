@@ -940,7 +940,8 @@ async function loadDetail(url) {
 
         if (!videoUrl) throw new Error("未找到视频资源");
 
-        console.log("91porn_int 提取到的视频URL: " + videoUrl);
+        // 自动检测是否为HLS流
+        const isHls = videoUrl.toLowerCase().includes('.m3u8');
 
         const result = {
             id: url,
@@ -950,6 +951,7 @@ async function loadDetail(url) {
             title: $('#videodetails h4').first().text().trim(),
             backdropPath: player.attr('poster') || $('video').attr('poster') || '',
             videoUrl,
+            isHls,
             customHeaders: {
                 Referer: url,
                 'User-Agent': USER_AGENT,
