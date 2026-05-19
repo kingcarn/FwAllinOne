@@ -785,7 +785,7 @@ WidgetMetadata = {
     id: '91porny_int',
     title: '91Porny',
     description: '91Porny',
-    version: "0.9.6",
+    version: "0.9.7",
     requiredVersion: '0.0.1',
     author: "網路",
     site: 'https://github.com/baranwang/forward-widget',
@@ -1063,7 +1063,7 @@ async function loadDetail(url) {
         if (realUrl.includes('/viewhd/')) realUrl = realUrl.replace('/viewhd/', '/view/');
         const $ = await widgetAPI.getHtml(realUrl);
         const video = $('#video-play');
-        const videoUrl = null == (_video_attr = video.attr('data-src')) ? void 0 : _video_attr.replace('&amp;', '&');
+        const videoUrl = null == (_video_attr = video.attr('data-src')) ? void 0 : _video_attr.replace(/&amp;/g, '&');
         if (!videoUrl) throw new Error("未找到视频资源");
         const result = {
             id: url,
@@ -1073,7 +1073,11 @@ async function loadDetail(url) {
             title: (null == (_$_attr = $('meta[property="og:title"]').attr('content')) ? void 0 : _$_attr.trim()) || '',
             releaseDate: (null == (_$_attr1 = $('meta[property="video:release_date"]').attr('content')) ? void 0 : _$_attr1.trim()) || '',
             backdropPath: video.attr('data-poster'),
-            videoUrl
+            videoUrl,
+            customHeaders: {
+                Referer: realUrl,
+                'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1'
+            }
         };
         try {
             result.childItems = getVideoList($);
