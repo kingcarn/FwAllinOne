@@ -1,10 +1,10 @@
 WidgetMetadata = {
-  id: "danmu_api_Max_binfa",
+  id: "danmu_api_Max_lunxun",
   title: "轮询弹幕",
   version: "1.3.2", // 
   requiredVersion: "0.0.2",
   site: "https://t.me/MakkaPakkaOvO",
-  description: "并发搜索多API、自定义名称、繁简互转、数量限制、关键词屏蔽、颜色重写",
+  description: "并发搜索多API、自定义名称、繁简互转、数量限制、关键词屏蔽、颜色重写（轮询稳定版）",
   author: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
   
   globalParams: [
