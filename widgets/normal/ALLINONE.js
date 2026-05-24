@@ -31,6 +31,8 @@ var WidgetMetadata = {
                         { title: "🔵 Disney+ (迪士尼)", value: "disney" },
                         { title: "🍏 Apple TV+", value: "apple" },
                         { title: "📦 Amazon Prime", value: "amazon" },
+                        { title: "🟢 Hulu", value: "hulu" },
+                        { title: "🌟 Paramount+", value: "paramount" },
                         { title: "🐧 腾讯视频", value: "tencent" },
                         { title: "🥝 爱奇艺", value: "iqiyi" },
                         { title: "👖 优酷", value: "youku" },
@@ -41,6 +43,7 @@ var WidgetMetadata = {
                         { title: "📡 东方卫视", value: "dragon" },
                         { title: "📡 CCTV-8", value: "cctv8" },
                         { title: "🇭🇰 ViuTV", value: "viutv" },
+                        { title: "🇭🇰 TVB (无线电视)", value: "tvb" },
                         { title: "🇹🇼 LINE TV", value: "linetv" },
                         { title: "🇹🇼 Hami Video", value: "hami" },
                         { title: "🇹🇼 CATCHPLAY", value: "catchplay" },
@@ -78,6 +81,8 @@ const PLATFORM_MAP = {
     disney:  { network: "2739", provider: "337", region: "US", name: "Disney+" },
     apple:   { network: "2552", provider: "350", region: "US", name: "Apple TV+" },
     amazon:  { network: "1024", provider: "119", region: "US", name: "Amazon" },
+    hulu:    { network: "15",  provider: "15",  region: "US", name: "Hulu" },
+    paramount:{ network: "4330",provider: "531", region: "US", name: "Paramount+" },
     tencent: { network: "2007|3353", provider: "138", region: "CN", name: "腾讯" },
     iqiyi:   { network: "1330", provider: "238", region: "CN", name: "爱奇艺" },
     youku:   { network: "1419", provider: "331", region: "CN", name: "优酷" },
@@ -96,6 +101,7 @@ const PLATFORM_MAP = {
     kbs2:    { network: "342", provider: null, region: "KR", name: "KBS2" },
     abc:     { network: "2", provider: null, region: "US", name: "ABC" },
     natgeo:  { network: "43", provider: null, region: "US", name: "国家地理" },
+    tvb:     { network: "370", provider: "252", region: "HK", name: "TVB" },
     all:     { network: null, provider: null, region: null, name: "综合" }
 };
 
