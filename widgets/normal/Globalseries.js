@@ -9,7 +9,7 @@ WidgetMetadata = {
     title: "KC's 全球影视专区",
     description: "自由切换全球十几个国家与地区，探索纯正的本土电影与剧集",
     author: "KingCarn",
-    version: "2.1.10", // 🚀 修复：精准绑定 sort_by 触发右上角下拉菜单
+    version: "2.2.0", // 🚀 新增模块3：TMDB播出平台（Watch Provider）
     requiredVersion: "0.0.1",
     modules: [
         // ================= 模块 1：全球探索发现 =================
@@ -136,6 +136,61 @@ WidgetMetadata = {
                         { title: "↑ 时间倒序", value: "time_desc" },
 						{ title: "↓ 时间正序", value: "time_asc" },
         				{ title: "🌟 近期热门", value: "recent_hot" } 
+                    ]
+                },
+                { name: "page", title: "页码", type: "page", startPage: 1 }
+            ]
+        },
+        // ================= 模块 3：TMDB播出平台 =================
+        {
+            title: "📺 TMDB播出平台",
+            functionName: "loadWatchProviderList",
+            type: "video",
+            cacheDuration: 3600,
+            params: [
+                {
+                    name: "mediaType",
+                    title: "影视类型",
+                    type: "enumeration",
+                    value: "all",
+                    enumOptions: [
+                        { title: "🌟 全部 (影+剧)", value: "all" },
+                        { title: "🎬 电影 (Movie)", value: "movie" },
+                        { title: "📺 电视剧 (TV)", value: "tv" }
+                    ]
+                },
+                {
+                    name: "provider",
+                    title: "播出平台",
+                    type: "enumeration",
+                    value: "netflix",
+                    enumOptions: [
+                        { title: "🎬 Netflix", value: "netflix" },
+                        { title: "✨ Disney+", value: "disney" },
+                        { title: "🔴 HBO Max", value: "hbo" },
+                        { title: "📦 Prime Video", value: "prime" },
+                        { title: "🍎 Apple TV+", value: "apple" },
+                        { title: "🟢 Hulu", value: "hulu" },
+                        { title: "🌟 Paramount+", value: "paramount" },
+                        { title: "🟦 腾讯视频", value: "tencent" },
+                        { title: "🟢 爱奇艺", value: "iqiyi" },
+                        { title: "🅱️ Bilibili", value: "bilibili" },
+                        { title: "🥭 芒果TV", value: "mango" },
+                        { title: "🔵 优酷", value: "youku" },
+                        { title: "📺 TVB (无线电视)", value: "tvb" }
+                    ]
+                },
+                {
+                    name: "sort_by",
+                    title: "排序规则",
+                    type: "enumeration",
+                    value: "popularity",
+                    enumOptions: [
+                        { title: "🔥 热门趋势", value: "popularity" },
+                        { title: "⭐ 评分最高", value: "rating" },
+                        { title: "↑ 时间倒序", value: "time_desc" },
+                        { title: "↓ 时间正序", value: "time_asc" },
+                        { title: "🌟 近期热门", value: "recent_hot" }
                     ]
                 },
                 { name: "page", title: "页码", type: "page", startPage: 1 }
@@ -431,3 +486,203 @@ async function loadGenreRank(params = {}) {
         return [{ id: "err", type: "text", title: "加载失败", description: "网络连接异常，请重试" }];
     }
 }
+
+// =========================================================================
+// 4. 模块 3 专属逻辑 (TMDB播出平台)
+// =========================================================================
+
+/**
+ * TMDB 播出平台发现模块
+ *
+ * 根据选定的播出平台（Netflix/Disney+/腾讯视频/爱奇艺等），
+ * 从 TMDB Discover 接口检索该平台上可播放的媒体清单。
+ *
+ * 依赖 TMDB Watch Provider 系统：
+ *   - watch_region: 根据平台自动匹配（如 US/CN/HK）
+ *   - with_watch_providers: 平台对应的 TMDB provider_id
+ *   - with_watch_monetization_types: 固定为 flatrate（订阅）
+ *
+ * 排序规则与模块2保持一致
+ */
+
+/** 平台 → TMDB Provider ID 映射（含对应 watch_region） */
+const PROVIDER_MAP = {
+    netflix:   { id: 8,   region: "US", label: "Netflix" },
+    disney:    { id: 337, region: "US", label: "Disney+" },
+    hbo:       { id: 384, region: "US", label: "HBO Max" },
+    prime:     { id: 9,   region: "US", label: "Prime Video" },
+    apple:     { id: 350, region: "US", label: "Apple TV+" },
+    hulu:      { id: 15,  region: "US", label: "Hulu" },
+    paramount: { id: 531, region: "US", label: "Paramount+" },
+    tencent:   { id: 3,   region: "CN", label: "\u817e\u8baf\u89c6\u9891" },
+    iqiyi:     { id: 2,   region: "CN", label: "\u7231\u5947\u827a" },
+    bilibili:  { id: 72,  region: "CN", label: "Bilibili" },
+    mango:     { id: 2930,region: "CN", label: "\u8292\u679cTV" },
+    youku:     { id: 197, region: "CN", label: "\u4f18\u9177" },
+    tvb:       { id: 252, region: "HK", label: "TVB" }
+};
+
+/**
+ * 构建 TMDB discover 查询参数
+ */
+function buildProviderQuery(mediaType, sort_by, page, providerKey) {
+    const provider = PROVIDER_MAP[providerKey];
+    if (!provider) return null;
+
+    let tmdbSortBy = "popularity.desc";
+    if (sort_by === "rating") tmdbSortBy = "vote_average.desc";
+    else if (sort_by === "time_desc") tmdbSortBy = mediaType === "movie" ? "primary_release_date.desc" : "first_air_date.desc";
+    else if (sort_by === "time_asc") tmdbSortBy = mediaType === "movie" ? "primary_release_date.asc" : "first_air_date.asc";
+
+    const queryParams = {
+        language: "zh-CN",
+        page: page,
+        sort_by: tmdbSortBy,
+        include_adult: false,
+        include_video: false,
+        watch_region: provider.region,
+        with_watch_providers: String(provider.id),
+        with_watch_monetization_types: "flatrate"
+    };
+
+    queryParams["vote_count.gte"] = sort_by === "rating" ? 10 : 3;
+
+    // 时间筛选
+    const minYear = (new Date()).getFullYear() - 2;
+    const dateFloor = `${minYear}-01-01`;
+    const today = new Date();
+    today.setMonth(today.getMonth() + 1);
+    const maxDate = today.toISOString().split('T')[0];
+
+    if (sort_by === "time_desc" || sort_by === "time_asc" || sort_by === "recent_hot") {
+        if (mediaType === "movie") {
+            queryParams["primary_release_date.lte"] = maxDate;
+            if (sort_by === "recent_hot") queryParams["primary_release_date.gte"] = dateFloor;
+        } else {
+            queryParams["first_air_date.lte"] = maxDate;
+            if (sort_by === "recent_hot") queryParams["first_air_date.gte"] = dateFloor;
+        }
+    }
+
+    return queryParams;
+}
+
+/**
+ * 近期热门贝叶斯综合排序（与模块2算法一致）
+ */
+function applyBayesianRecentHotSort(items) {
+    if (!items || items.length === 0) return;
+    const minYear = (new Date()).getFullYear() - 2;
+    const maxPop = Math.max(...items.map(i => i.popularity || 0));
+    const minPop = Math.min(...items.map(i => i.popularity || 0));
+    const maxScore = Math.max(...items.map(i => i.vote_average || 0));
+    const minScore = Math.min(...items.map(i => i.vote_average || 0));
+    const maxYear = Math.max(...items.map(i => {
+        const d = i.release_date || i.first_air_date || "";
+        return d ? Number(d.slice(0, 4)) : minYear;
+    }));
+
+    items.forEach(i => {
+        const popNorm = maxPop > minPop ? (i.popularity - minPop) / (maxPop - minPop) : 0;
+        const scoreNorm = maxScore > minScore ? (i.vote_average - minScore) / (maxScore - minScore) : 0;
+        let year = 0;
+        const d = i.release_date || i.first_air_date || "";
+        if (d) year = Number(d.slice(0, 4));
+        const yearNorm = maxYear > minYear ? (year - minYear) / (maxYear - minYear) : 0;
+        i._recent_hot_weight = 0.3 * popNorm + 0.15 * scoreNorm + 0.55 * yearNorm;
+    });
+    items.sort((a, b) => b._recent_hot_weight - a._recent_hot_weight);
+}
+
+/**
+ * 格式化输出（与模块1/2保持一致的字段结构）
+ */
+function formatProviderItem(item, mediaType, providerLabel) {
+    if (!item) return null;
+    const date = item.release_date || item.first_air_date || "";
+    const year = date ? date.substring(0, 4) : "未知";
+    const score = item.vote_average ? item.vote_average.toFixed(1) : "暂无评分";
+    return {
+        id: String(item.id),
+        tmdbId: parseInt(item.id),
+        type: "tmdb",
+        mediaType: mediaType,
+        title: item.title || item.name,
+        subTitle: `${providerLabel} | \u2b50 ${score} | ${year}`,
+        description: `${date} \u00b7 \u2b50 ${score}\n${item.overview || "\u6682\u65e0\u7b80\u4ecb"}`,
+        releaseDate: date,
+        year: year,
+        posterPath: item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : "",
+        backdropPath: item.backdrop_path ? `https://image.tmdb.org/t/p/w780${item.backdrop_path}` : "",
+        rating: parseFloat(score) || 0
+    };
+}
+
+/**
+ * 从 TMDB 获取某个平台的内容
+ */
+async function fetchProviderContent(mediaType, sort_by, page, providerKey) {
+    const provider = PROVIDER_MAP[providerKey];
+    if (!provider) return [];
+    const qp = buildProviderQuery(mediaType, sort_by, page, providerKey);
+    if (!qp) return [];
+    const res = await Widget.tmdb.get(`/discover/${mediaType}`, { params: qp });
+    let items = res.results || [];
+    if (sort_by === "recent_hot" && items.length > 0) {
+        applyBayesianRecentHotSort(items);
+    }
+    return items.map(i => formatProviderItem(i, mediaType, provider.label)).filter(Boolean);
+}
+
+/**
+ * loadWatchProviderList — 模块3入口
+ */
+async function loadWatchProviderList(params = {}) {
+    const page = parseInt(params.page) || 1;
+    const {
+        mediaType = "all",
+        provider = "netflix",
+        sort_by = "popularity"
+    } = params;
+
+    try {
+        let items = [];
+
+        if (mediaType === "all") {
+            // 同时查询电影和电视剧，合并排序
+            const [movies, tvs] = await Promise.all([
+                fetchProviderContent("movie", sort_by, page, provider),
+                fetchProviderContent("tv", sort_by, page, provider)
+            ]);
+            items = [...movies, ...tvs];
+
+            // 合并后排序
+            if (sort_by === "popularity") {
+                items.sort((a, b) => b._popularity - a._popularity);
+            } else if (sort_by === "rating") {
+                items.sort((a, b) => b.rating - a.rating);
+            } else if (sort_by === "time_desc") {
+                items.sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate));
+            } else if (sort_by === "time_asc") {
+                items.sort((a, b) => new Date(a.releaseDate) - new Date(b.releaseDate));
+            }
+            // recent_hot 已经在各自查询中排好了，直接合并即可
+        } else {
+            items = await fetchProviderContent(mediaType, sort_by, page, provider);
+        }
+
+        if (items.length === 0) {
+            const label = PROVIDER_MAP[provider]?.label || provider;
+            return page === 1
+                ? [{ id: "empty", type: "text", title: "\u8be5\u5e73\u53f0\u6682\u65e0\u5185\u5bb9", description: `${label} \u4e0a\u6682\u65e0\u6ee1\u8db3\u6761\u4ef6\u7684\u5a92\u4f53\uff0c\u8bf7\u5c1d\u8bd5\u5176\u4ed6\u5e73\u53f0` }]
+                : [];
+        }
+
+        return items;
+
+    } catch (error) {
+        console.error("\u52a0\u8f7d\u64ad\u51fa\u5e73\u53f0\u5217\u8868\u5931\u8d25:", error);
+        return [{ id: "err", type: "text", title: "\u52a0\u8f7d\u5931\u8d25", description: "\u7f51\u7edc\u8fde\u63a5\u5f02\u5e38\uff0c\u8bf7\u91cd\u8bd5" }];
+    }
+}
+
