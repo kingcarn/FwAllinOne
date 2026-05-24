@@ -1,6 +1,6 @@
 WidgetMetadata = {
   id: "danmu_api_Max_binfa",
-  title: "并发弹幕",
+  title: "轮询弹幕",
   version: "1.3.2", // 
   requiredVersion: "0.0.2",
   site: "https://t.me/MakkaPakkaOvO",
