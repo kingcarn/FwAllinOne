@@ -6,7 +6,7 @@
 // =============UserScript=============
 
 WidgetMetadata = {
-  id: "danmu_api_Max_binfa_v2",
+  id: "danmu_api_Max_binfa_testv2",
   title: "并发弹幕 (官方最新核心版)",
   version: "2.0.0",
   requiredVersion: "0.0.2",
