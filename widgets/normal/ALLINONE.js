@@ -52,18 +52,6 @@ var WidgetMetadata = {
                     ]
                 },
                 {
-                    name: "mediaType",
-                    title: "影视分类",
-                    type: "enumeration",
-                    value: "tv",
-                    enumOptions: [
-                        { title: "📺 纯净剧集 (Drama)", value: "tv" },
-                        { title: "🎬 电影 (Movie)", value: "movie" },
-                        { title: "🐰 动漫 (Anime)", value: "anime" },
-                        { title: "🎤 综艺/真人秀", value: "variety" }
-                    ]
-                },
-                {
                     name: "sort_by",
                     title: "排序方式",
                     type: "enumeration",
@@ -71,7 +59,9 @@ var WidgetMetadata = {
                     enumOptions: [
                         { title: "🔥 平台热度榜", value: "hot" },
                         { title: "🆕 最新上线榜", value: "new" },
-                        { title: "🏆 TMDB 高分榜", value: "top" }
+                        { title: "🏆 TMDB 高分榜", value: "top" },
+                        { title: "↑ 时间倒序", value: "time_desc" },
+                        { title: "↓ 时间正序", value: "time_asc" }
                     ]
                 },
                 { name: "page", title: "页码", type: "page", startPage: 1 }
@@ -122,7 +112,6 @@ function getGenreText(ids) {
     return genres.length > 0 ? genres.slice(0, 2).join(" / ") : "影视";
 }
 
-// 🎯 核心修正：完全向你的二次元代码对齐
 function buildItem(item, isMovie, platformName) {
     if (!item) return null;
     
@@ -161,66 +150,102 @@ function buildItem(item, isMovie, platformName) {
 
 // ================= 2. 核心请求逻辑 =================
 
-async function loadPlatformList(params) {
-    // 👈 逻辑接管：从 provider 获取 platform 选择
-    const platform = params.provider || "netflix";
-    const mediaType = params.mediaType || "tv";
-    const category = params.sort_by || "hot";
-    const page = params.page || 1;
-
+/**
+ * 构建 TMDB discover 查询参数（通用）
+ */
+function buildQueryParamsForCategory(category, page, endpointType) {
     const today = new Date().toISOString().split('T')[0];
-    const isMovie = (mediaType === "movie");
-    const endpoint = isMovie ? "/discover/movie" : "/discover/tv";
-    const platformConfig = PLATFORM_MAP[platform];
+    const isMovie = (endpointType === "movie");
 
-    let queryParams = {
+    const qp = {
         language: "zh-CN",
         page: page
     };
 
-    if (platform !== "all") {
-        if (isMovie) {
-            if (!platformConfig.provider) {
-                return [{ id: "empty", type: "text", title: "无电影分类", description: `[${platformConfig.name}] 暂不支持该分类。` }];
-            }
-            queryParams.with_watch_providers = platformConfig.provider;
-            queryParams.watch_region = platformConfig.region || "US";
-        } else {
-            queryParams.with_networks = platformConfig.network;
-        }
-    }
-
-    if (mediaType === "anime") {
-        queryParams.with_genres = "16";
-    } else if (mediaType === "variety") {
-        queryParams.with_genres = "10764|10767";
-    } else if (mediaType === "tv") {
-        queryParams.without_genres = "16,10764,10767";
-    }
-
     if (category === "hot") {
-        queryParams.provider = "popularity.desc";
-        queryParams["vote_count.gte"] = 2;
-    } 
-    else if (category === "new") {
-        queryParams.provider = isMovie ? "primary_release_date.desc" : "first_air_date.desc";
+        qp.sort_by = "popularity.desc";
+        qp["vote_count.gte"] = 2;
+    } else if (category === "new") {
+        qp.sort_by = isMovie ? "primary_release_date.desc" : "first_air_date.desc";
         if (isMovie) {
-            queryParams["primary_release_date.lte"] = today;
+            qp["primary_release_date.lte"] = today;
         } else {
-            queryParams["first_air_date.lte"] = today;
+            qp["first_air_date.lte"] = today;
         }
-    } 
-    else if (category === "top") {
-        queryParams.provider = "vote_average.desc";
-        queryParams["vote_count.gte"] = 30; 
+    } else if (category === "top") {
+        qp.sort_by = "vote_average.desc";
+        qp["vote_count.gte"] = 30;
+    } else if (category === "time_desc") {
+        qp.sort_by = isMovie ? "primary_release_date.desc" : "first_air_date.desc";
+    } else if (category === "time_asc") {
+        qp.sort_by = isMovie ? "primary_release_date.asc" : "first_air_date.asc";
     }
+
+    return qp;
+}
+
+/**
+ * 从 TMDB 获取某个端点的数据
+ */
+async function fetchFromEndpoint(endpointType, category, page, platformKey) {
+    const platformConfig = PLATFORM_MAP[platformKey];
+    const endpoint = endpointType === "movie" ? "/discover/movie" : "/discover/tv";
+    const qp = buildQueryParamsForCategory(category, page, endpointType);
+
+    if (platformKey !== "all" && platformConfig) {
+        if (endpointType === "movie" && platformConfig.provider) {
+            qp.with_watch_providers = platformConfig.provider;
+            qp.watch_region = platformConfig.region || "US";
+        } else if (endpointType === "tv" && platformConfig.network) {
+            qp.with_networks = platformConfig.network;
+        }
+    }
+
+    const res = await Widget.tmdb.get(endpoint, { params: qp });
+    return (res.results || []).map(i => buildItem(i, endpointType === "movie", platformConfig?.name || "综合")).filter(Boolean);
+}
+
+/**
+ * loadPlatformList — 模块入口
+ * 移除 mediaType 选择，默认请求所有类型（电影+剧集）。
+ * 排序参数直接通过 sort_by 传给 TMDB API，不在本地二次排序。
+ */
+async function loadPlatformList(params) {
+    const platform = params.provider || "netflix";
+    const category = params.sort_by || "hot";
+    const page = parseInt(params.page) || 1;
+    const platformConfig = PLATFORM_MAP[platform];
 
     try {
-        const res = await Widget.tmdb.get(endpoint, { params: queryParams });
-        const items = (res.results || []).map(i => buildItem(i, isMovie, platformConfig.name)).filter(Boolean);
+        let items = [];
+
+        if (platform === "all") {
+            // 全球综合：同时查电影和剧集
+            const [movies, tvs] = await Promise.all([
+                fetchFromEndpoint("movie", category, page, "all"),
+                fetchFromEndpoint("tv", category, page, "all")
+            ]);
+            items = [...movies, ...tvs];
+        } else {
+            const canFetchMovie = !!platformConfig?.provider;
+            const canFetchTv    = !!platformConfig?.network;
+
+            if (canFetchMovie && canFetchTv) {
+                const [movies, tvs] = await Promise.all([
+                    fetchFromEndpoint("movie", category, page, platform),
+                    fetchFromEndpoint("tv", category, page, platform)
+                ]);
+                items = [...movies, ...tvs];
+            } else if (canFetchTv) {
+                items = await fetchFromEndpoint("tv", category, page, platform);
+            } else if (canFetchMovie) {
+                items = await fetchFromEndpoint("movie", category, page, platform);
+            }
+        }
 
         if (items.length === 0) {
-             return [{ id: "empty", type: "text", title: "无数据", description: `在 [${platformConfig.name}] 暂未找到符合该条件的影视记录` }];
+            return [{ id: "empty", type: "text", title: "无数据",
+                description: `在 [${platformConfig?.name || platform}] 暂未找到符合该条件的影视记录` }];
         }
 
         return items;
@@ -229,3 +254,4 @@ async function loadPlatformList(params) {
         return [{ id: "error", type: "text", title: "网络异常", description: "请求失败，请重试" }];
     }
 }
+
