@@ -505,21 +505,27 @@ async function loadGenreRank(params = {}) {
  * 排序规则与模块2保持一致
  */
 
-/** 平台 → TMDB Provider ID 映射（含对应 watch_region） */
+/**
+ * 平台 → TMDB Provider ID 映射（含对应 watch_region）
+ *
+ * TMDB Watch Provider IDs 会随数据库更新而变化。
+ * 以下为 2025/2026 年较新的 ID 映射，与自动代码/旧版不一致时以 TMDB API 返回为准。
+ * 参考：https://api.themoviedb.org/3/watch/providers/{movie|tv}?language=zh-CN&watch_region={region}
+ */
 const PROVIDER_MAP = {
-    netflix:   { id: 8,   region: "US", label: "Netflix" },
-    disney:    { id: 337, region: "US", label: "Disney+" },
-    hbo:       { id: 384, region: "US", label: "HBO Max" },
-    prime:     { id: 9,   region: "US", label: "Prime Video" },
-    apple:     { id: 350, region: "US", label: "Apple TV+" },
+    netflix:   { id: 213, region: "US", label: "Netflix" },
+    disney:    { id: 2739,region: "US", label: "Disney+" },
+    hbo:       { id: 1899,region: "US", label: "Max (HBO)" },
+    prime:     { id: 119, region: "US", label: "Prime Video" },
+    apple:     { id: 2552,region: "US", label: "Apple TV+" },
     hulu:      { id: 15,  region: "US", label: "Hulu" },
     paramount: { id: 531, region: "US", label: "Paramount+" },
-    tencent:   { id: 3,   region: "CN", label: "\u817e\u8baf\u89c6\u9891" },
-    iqiyi:     { id: 2,   region: "CN", label: "\u7231\u5947\u827a" },
+    tencent:   { id: 283, region: "CN", label: "\u817e\u8baf\u89c6\u9891" },
+    iqiyi:     { id: 71,  region: "CN", label: "\u7231\u5947\u827a" },
     bilibili:  { id: 72,  region: "CN", label: "Bilibili" },
     mango:     { id: 2930,region: "CN", label: "\u8292\u679cTV" },
     youku:     { id: 197, region: "CN", label: "\u4f18\u9177" },
-    tvb:       { id: 252, region: "HK", label: "TVB" }
+    tvb:       { id: 370, region: "HK", label: "TVB" }
 };
 
 /**
@@ -542,7 +548,9 @@ function buildProviderQuery(mediaType, sort_by, page, providerKey) {
         include_video: false,
         watch_region: provider.region,
         with_watch_providers: String(provider.id),
-        with_watch_monetization_types: "flatrate"
+        // 用多种付费类型覆盖——不同平台在不同地区的可用类型不同
+        // flatrate=订阅 buy=购买 rent=租赁 free=免费 ads=广告
+        with_watch_monetization_types: "flatrate|ads|free|rent"
     };
 
     queryParams["vote_count.gte"] = sort_by === "rating" ? 10 : 3;
