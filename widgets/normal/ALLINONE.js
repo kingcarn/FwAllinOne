@@ -81,7 +81,7 @@ const PLATFORM_MAP = {
     disney:  { network: "2739", provider: "337", region: "US", name: "Disney+" },
     apple:   { network: "2552", provider: "350", region: "US", name: "Apple TV+" },
     amazon:  { network: "1024", provider: "119", region: "US", name: "Amazon" },
-    hulu:    { network: "15",  provider: "15",  region: "US", name: "Hulu" },
+    hulu:    { network: "453",  provider: "15",  region: "US", name: "Hulu" },
     paramount:{ network: "4330",provider: "531", region: "US", name: "Paramount+" },
     tencent: { network: "2007|3353", provider: "138", region: "CN", name: "腾讯" },
     iqiyi:   { network: "1330", provider: "238", region: "CN", name: "爱奇艺" },
@@ -101,7 +101,7 @@ const PLATFORM_MAP = {
     kbs2:    { network: "342", provider: null, region: "KR", name: "KBS2" },
     abc:     { network: "2", provider: null, region: "US", name: "ABC" },
     natgeo:  { network: "43", provider: null, region: "US", name: "国家地理" },
-    tvb:     { network: "370", provider: "252", region: "HK", name: "TVB" },
+    tvb:     { network: "193", provider: "553", region: "HK", name: "TVB" },
     all:     { network: null, provider: null, region: null, name: "综合" }
 };
 
