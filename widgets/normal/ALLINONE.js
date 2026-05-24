@@ -4,13 +4,14 @@
  * 涵盖: 国内爱优腾芒、四大卫视、港台本土平台、韩国三大台、以及网飞/HBO等国际巨头
  */
 
-WidgetMetadata = {
-    id: "makka_global_networks",
-    title: "全球影视平台ALL IN ONE",
+var WidgetMetadata = {
+    id: "kc_global_networks",
+    title: "全球影视平台ALL IN ONE(From Makkapaka)",
     description: "全网最全的频道聚合：覆盖爱优腾、网飞、HBO、韩国tvN及各大卫视",
-    author: "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
-    version: "1.2.3", // 🚀 升级：引入防截断与双海报极简排版规范
+    author: "KingCarn",
+    version: "1.2.5", 
     requiredVersion: "0.0.1",
+    site: "NA",
     modules: [
         {
             title: "全网热播发现",
@@ -19,7 +20,7 @@ WidgetMetadata = {
             cacheDuration: 3600,
             params: [
                 {
-                    name: "platform",
+                    name: "provider", // 👈 魔法字段：把这70多个平台的选择提到右上角！
                     title: "选择频道/平台",
                     type: "enumeration",
                     value: "netflix",
@@ -63,7 +64,7 @@ WidgetMetadata = {
                     ]
                 },
                 {
-                    name: "sortBy",
+                    name: "sort_by",
                     title: "排序方式",
                     type: "enumeration",
                     value: "hot",
@@ -161,9 +162,10 @@ function buildItem(item, isMovie, platformName) {
 // ================= 2. 核心请求逻辑 =================
 
 async function loadPlatformList(params) {
-    const platform = params.platform || "netflix";
+    // 👈 逻辑接管：从 provider 获取 platform 选择
+    const platform = params.provider || "netflix";
     const mediaType = params.mediaType || "tv";
-    const category = params.sortBy || "hot";
+    const category = params.sort_by || "hot";
     const page = params.page || 1;
 
     const today = new Date().toISOString().split('T')[0];
@@ -197,11 +199,11 @@ async function loadPlatformList(params) {
     }
 
     if (category === "hot") {
-        queryParams.sort_by = "popularity.desc";
+        queryParams.provider = "popularity.desc";
         queryParams["vote_count.gte"] = 2;
     } 
     else if (category === "new") {
-        queryParams.sort_by = isMovie ? "primary_release_date.desc" : "first_air_date.desc";
+        queryParams.provider = isMovie ? "primary_release_date.desc" : "first_air_date.desc";
         if (isMovie) {
             queryParams["primary_release_date.lte"] = today;
         } else {
@@ -209,7 +211,7 @@ async function loadPlatformList(params) {
         }
     } 
     else if (category === "top") {
-        queryParams.sort_by = "vote_average.desc";
+        queryParams.provider = "vote_average.desc";
         queryParams["vote_count.gte"] = 30; 
     }
 
