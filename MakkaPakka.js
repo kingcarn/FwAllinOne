@@ -67,22 +67,22 @@
       "url": "https://rex.fwd.ccwu.cc/js/qqzyRex.js"
     },
     {
-      "id": " global_series_makka",
+      "id": " global_series_makka_rex",
       "title": "全球影视专区",
       "description": "自由切换全球十几个国家与地区，探索纯正的本土电影与剧集",
       "requiredVersion": "0.0.1",
       "version": "2.1.1",
       "author": "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
-      "url": "https://rex.fwd.ccwu.cc/js/qqyszqRex.js"
+      "url": "https://rex.fwd.ccwu.cc/js/qqyszq.js"
     },
     {
-      "id": "movie_ultimate_makka_v2",
+      "id": "movie_ultimate_makka_v2_rex",
       "title": "全能电影榜",
       "description": "提供流行、高分、年度最佳以及按类型探索电影",
       "requiredVersion": "0.0.1",
       "version": "1.4.0",
       "author": "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
-      "url": "https://rex.fwd.ccwu.cc/js/qqyszqRex.js"
+      "url": "https://rex.fwd.ccwu.cc/js/movie.js"
     },
     {
       "id": "platform.originals.ui.fix",
@@ -94,13 +94,31 @@
       "url": "https://rex.fwd.ccwu.cc/js/lmtdjycRex.js"
     },
     {
-      "id": "anime_omni_fix",
+      "id": "anime_omni_fix_rex",
       "title": "二次元全境聚合",
       "description": "一站式聚合多平台动漫榜单。",
       "requiredVersion": "0.0.1",
-      "version": "2.4.2",
+      "version": "2.5.0",
       "author": "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
-      "url": "https://rex.fwd.ccwu.cc/js/animeRex.js"
+      "url": "https://rex.fwd.ccwu.cc/js/anime.js"
+    },
+    {
+      "id": "makka_global_networks",
+      "title": "全球影视平台ALL IN ONE",
+      "description": "全网最全的频道聚合：覆盖爱优腾、网飞、HBO、韩国tvN及各大卫视",
+      "requiredVersion": "0.0.1",
+      "version": "1.2.4",
+      "author": "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
+      "url": "https://rex.fwd.ccwu.cc/js/ALLINONE.js"
+    },
+    {
+      "id": "trakt_personal_key",
+      "title": "Trak 追剧日历 免key版",
+      "description": "内置 Key 版：只需填写用户名即可使用。显示追剧日历、待看、收藏及历史记录",
+      "requiredVersion": "0.0.1",
+      "version": "1.1.9",
+      "author": "𝙈𝙖𝙠𝙠𝙖𝙋𝙖𝙠𝙠𝙖",
+      "url": "https://rex.fwd.ccwu.cc/js/trakt.js"
     },
     {
       "id": "zhuijurili",
